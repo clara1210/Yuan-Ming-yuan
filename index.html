@@ -1,75 +1,66 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>圆明园构件3D展示</title>
+    <meta charset="utf-8">
+    <title>圆明园3D展示</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; }
-        .loading { 
-            position: fixed; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            color: #fff; 
-            font-size: 20px; 
+        body { margin: 0; background: #000; }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 20px;
         }
     </style>
 </head>
 <body>
     <div class="loading">加载中...</div>
-    <!-- 使用最新稳定版本的three.js（避免废弃问题） -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- 用最旧的稳定版本，完全避免兼容性问题 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/loaders/GLTFLoader.js"></script>
     <script>
         window.onload = function() {
-            // 1. 初始化核心对象
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            // 场景
+            var scene = new THREE.Scene();
+            // 相机
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            // 渲染器
+            var renderer = new THREE.WebGLRenderer();
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            // 2. 光照
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambientLight);
-
-            // 3. 加载模型（修复GLTFLoader的调用方式）
-            const loader = new THREE.GLTFLoader();
-            const loadingText = document.querySelector('.loading');
-
+            // 加载模型
+            var loader = new THREE.GLTFLoader();
+            var loadingText = document.querySelector('.loading');
+            
             loader.load(
                 'https://raw.githubusercontent.com/clara1210/Yuan-Ming-yuan/main/3d%20model.glb',
                 function (gltf) {
-                    const model = gltf.scene;
-                    model.scale.set(0.8, 0.8, 0.8);
-                    scene.add(model);
+                    scene.add(gltf.scene);
                     loadingText.style.display = 'none';
                 },
                 function (xhr) {
-                    console.log(`加载进度：${(xhr.loaded / xhr.total * 100).toFixed(0)}%`);
+                    console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
                 },
                 function (error) {
-                    console.error('模型加载失败：', error);
+                    console.error('An error happened', error);
                     loadingText.innerText = '加载失败';
                 }
             );
 
-            // 4. 相机与控制器
+            // 相机位置
             camera.position.z = 5;
-            const controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
 
-            // 5. 渲染循环
+            // 渲染循环
             function animate() {
                 requestAnimationFrame(animate);
-                controls.update();
                 renderer.render(scene, camera);
             }
             animate();
 
-            // 6. 窗口适配
+            // 窗口适配
             window.addEventListener('resize', function() {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
