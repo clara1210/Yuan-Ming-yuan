@@ -5,19 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>圆明园构件3D展示</title>
     <style>
-        /* 背景改为白色 */
-        body { margin: 0; overflow: hidden; background: #fff; }
+        body { margin: 0; overflow: hidden; background: #fff !important; }
         .loading {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #000; /* 加载文字颜色改为黑色，适配白色背景 */
+            color: #000;
             font-size: 20px;
             z-index: 10;
         }
     </style>
-    <!-- 配置three.js模块（官方标准方式） -->
     <script type="importmap">
         {
             "imports": {
@@ -30,37 +28,31 @@
 <body>
     <div class="loading">加载中...</div>
     <script type="module">
-        // 1. 引入依赖（官方标准写法）
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // 2. 初始化核心对象
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        // 渲染器背景改为白色
         renderer.setClearColor(0xffffff);
         document.body.appendChild(renderer.domElement);
 
-        // 3. 添加光照
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
 
-        // 4. 加载模型（用GitHub Pages的相对路径，避免跨域）
         const loader = new GLTFLoader();
         const loadingText = document.querySelector('.loading');
 
         loader.load(
-            // 模型路径：和index.html同目录，空格转%20
             './3d%20model.glb',
             (gltf) => {
                 const model = gltf.scene;
-                // 初始模型放大，从0.8调整到1.5
                 model.scale.set(3.5, 3.5, 3.5);
+                model.position.set(0, -0.5, 0); // 模型居中
                 scene.add(model);
-                loadingText.style.display = 'none'; // 隐藏加载提示
+                loadingText.style.display = 'none';
             },
             (xhr) => {
                 console.log(`加载进度：${(xhr.loaded / xhr.total * 100).toFixed(0)}%`);
@@ -71,18 +63,19 @@
             }
         );
 
-        // 5. 相机与控制器
         camera.position.z = 5;
         const controls = new OrbitControls(camera, renderer.domElement);
+        // 核心修改：关闭自动旋转
+        controls.autoRotate = false;
+        // 保留阻尼效果（旋转更顺滑）
         controls.enableDamping = true;
-        controls.autoRotate = true;
-        // 开启缩放功能
+        // 保留缩放功能（鼠标滚轮控制）
         controls.enableZoom = true;
-        // 限制缩放范围（避免太近或太远）
         controls.minDistance = 2;
         controls.maxDistance = 10;
+        // 确保旋转功能开启（默认开启，显式声明更保险）
+        controls.enableRotate = true;
 
-        // 6. 渲染循环
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
@@ -90,7 +83,6 @@
         }
         animate();
 
-        // 7. 窗口适配
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
