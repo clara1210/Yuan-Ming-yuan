@@ -72,6 +72,11 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = true;
+        // 开启缩放功能
+        controls.enableZoom = true;
+        // 限制缩放范围（避免太近或太远）
+        controls.minDistance = 2;
+        controls.maxDistance = 10;
 
         // 6. 渲染循环
         function animate() {
