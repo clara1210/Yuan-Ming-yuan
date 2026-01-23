@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>圆明园构件3D展示</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #1a1a1a; }
-        canvas { display: block; width: 100%; height: 100vh; }
+        body { margin: 0; overflow: hidden; }
         .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; }
     </style>
+    <!-- 直接用script标签加载three.js（避免import路径问题） -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/controls/OrbitControls.js"></script>
 </head>
 <body>
     <div class="loading">加载中...</div>
-    <script type="module" src="main.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
