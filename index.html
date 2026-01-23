@@ -54,7 +54,7 @@
                 
                 // 核心修改：调整模型初始旋转角度（让正面朝向镜头）
                 // 通过Y轴旋转180度（根据实际模型方向，可微调数值）
-                model.rotation.y = Math.PI; // 180度（弧度制）
+                model.rotation.y = Math.PI / 2; // 180度（弧度制）
                 
                 scene.add(model);
                 loadingText.style.display = 'none';
@@ -94,3 +94,4 @@
     </script>
 </body>
 </html>
+
