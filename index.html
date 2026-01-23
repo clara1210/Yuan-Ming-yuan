@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>圆明园构件3D展示</title>
     <style>
-        * { margin: 0; padding: 0; }
-        body { overflow: hidden; background: #000; }
+        body { margin: 0; overflow: hidden; background: #000; }
         .loading { 
             position: fixed; 
             top: 50%; 
@@ -14,17 +13,79 @@
             transform: translate(-50%, -50%); 
             color: #fff; 
             font-size: 20px; 
-            z-index: 100;
         }
-        canvas { display: block; }
     </style>
 </head>
 <body>
-    <div class="loading">模型加载中...</div>
-    <!-- 直接加载three.js及依赖（稳定CDN） -->
+    <div class="loading">加载中...</div>
+    <!-- 直接加载three.js及工具（无模块依赖） -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/controls/OrbitControls.js"></script>
-    <script src="main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // 直接在HTML里写JS，彻底避免文件引入问题
+        window.onload = function() {
+            // 1. 初始化场景、相机、渲染器
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // 2. 添加光照
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 0.5);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+
+            // 3. 加载模型（用绝对路径）
+            const loader = new THREE.GLTFLoader();
+            const loadingText = document.querySelector('.loading');
+
+            loader.load(
+                // 模型绝对路径（直接用GitHub仓库的文件链接）
+                'https://raw.githubusercontent.com/clara1210/Yuan-Ming-yuan/main/3d%20model.glb',
+                function (gltf) {
+                    // 模型加载成功
+                    const model = gltf.scene;
+                    model.scale.set(0.8, 0.8, 0.8);
+                    model.position.set(0, -1, 0);
+                    scene.add(model);
+                    loadingText.style.display = 'none';
+                },
+                function (xhr) {
+                    console.log(`加载进度：${(xhr.loaded / xhr.total * 100).toFixed(0)}%`);
+                },
+                function (error) {
+                    console.error('模型加载失败：', error);
+                    loadingText.innerText = '加载失败';
+                }
+            );
+
+            // 4. 相机位置
+            camera.position.z = 5;
+
+            // 5. 轨道控制器
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+
+            // 6. 渲染循环
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // 7. 窗口适配
+            window.addEventListener('resize', function() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+    </script>
 </body>
 </html>
