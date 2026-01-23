@@ -65,16 +65,19 @@
 
         camera.position.z = 5;
         const controls = new OrbitControls(camera, renderer.domElement);
-        // 核心修改：关闭自动旋转
+        // 1. 彻底关闭自动旋转（核心）
         controls.autoRotate = false;
-        // 保留阻尼效果（旋转更顺滑）
-        controls.enableDamping = true;
-        // 保留缩放功能（鼠标滚轮控制）
+        // 2. 关闭自动旋转速度（兜底）
+        controls.autoRotateSpeed = 0;
+        // 3. 关闭阻尼（避免惯性旋转），如需顺滑可保留，但先彻底停止旋转
+        controls.enableDamping = false;
+        // 4. 保留手动旋转和缩放
+        controls.enableRotate = true;
         controls.enableZoom = true;
         controls.minDistance = 2;
         controls.maxDistance = 10;
-        // 确保旋转功能开启（默认开启，显式声明更保险）
-        controls.enableRotate = true;
+        // 5. 立即重置控制器状态
+        controls.reset();
 
         function animate() {
             requestAnimationFrame(animate);
