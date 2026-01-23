@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>圆明园构件3D展示</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; }
+        /* 背景改为白色 */
+        body { margin: 0; overflow: hidden; background: #fff; }
         .loading {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #fff;
+            color: #000; /* 加载文字颜色改为黑色，适配白色背景 */
             font-size: 20px;
             z-index: 10;
         }
@@ -39,6 +40,8 @@
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        // 渲染器背景改为白色
+        renderer.setClearColor(0xffffff);
         document.body.appendChild(renderer.domElement);
 
         // 3. 添加光照
@@ -54,7 +57,8 @@
             './3d%20model.glb',
             (gltf) => {
                 const model = gltf.scene;
-                model.scale.set(0.8, 0.8, 0.8); // 调整模型大小
+                // 初始模型放大，从0.8调整到1.5
+                model.scale.set(3.5, 3.5, 3.5);
                 scene.add(model);
                 loadingText.style.display = 'none'; // 隐藏加载提示
             },
