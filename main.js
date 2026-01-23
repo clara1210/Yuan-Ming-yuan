@@ -1,8 +1,3 @@
-// 换成jsDelivr的CDN（更稳定）
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/controls/OrbitControls.js';
-
 // 【第一个日志】确认代码开始执行
 console.log('代码开始初始化，three.js 库加载正常');
 
@@ -14,7 +9,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000, 0); // 透明背景
 document.body.appendChild(renderer.domElement);
 
-// 添加光照（让模型颜色正常显示）
+// 添加光照
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -29,7 +24,7 @@ const loadingText = document.querySelector('.loading');
 console.log('开始加载模型文件：3d model.glb');
 
 loader.load(
-    '3d model.glb', // 你的模型文件名
+    '3d model.glb',
     function (gltf) {
         // 【第三个日志】模型加载成功
         console.log('模型加载成功！', gltf);
