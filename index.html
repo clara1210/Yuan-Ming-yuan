@@ -51,6 +51,11 @@
                 const model = gltf.scene;
                 model.scale.set(3.5, 3.5, 3.5);
                 model.position.set(0, -0.5, 0); // 模型居中
+                
+                // 核心修改：调整模型初始旋转角度（让正面朝向镜头）
+                // 通过Y轴旋转180度（根据实际模型方向，可微调数值）
+                model.rotation.y = Math.PI; // 180度（弧度制）
+                
                 scene.add(model);
                 loadingText.style.display = 'none';
             },
@@ -65,18 +70,13 @@
 
         camera.position.z = 5;
         const controls = new OrbitControls(camera, renderer.domElement);
-        // 1. 彻底关闭自动旋转（核心）
         controls.autoRotate = false;
-        // 2. 关闭自动旋转速度（兜底）
         controls.autoRotateSpeed = 0;
-        // 3. 关闭阻尼（避免惯性旋转），如需顺滑可保留，但先彻底停止旋转
-        controls.enableDamping = false;
-        // 4. 保留手动旋转和缩放
+        controls.enableDamping = true; // 恢复顺滑阻尼
         controls.enableRotate = true;
         controls.enableZoom = true;
         controls.minDistance = 2;
         controls.maxDistance = 10;
-        // 5. 立即重置控制器状态
         controls.reset();
 
         function animate() {
