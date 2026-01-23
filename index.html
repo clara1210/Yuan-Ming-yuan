@@ -18,39 +18,32 @@
 </head>
 <body>
     <div class="loading">加载中...</div>
-    <!-- 直接加载three.js及工具（无模块依赖） -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- 使用最新稳定版本的three.js（避免废弃问题） -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-        // 直接在HTML里写JS，彻底避免文件引入问题
         window.onload = function() {
-            // 1. 初始化场景、相机、渲染器
+            // 1. 初始化核心对象
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            // 2. 添加光照
+            // 2. 光照
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
-            const pointLight = new THREE.PointLight(0xffffff, 0.5);
-            pointLight.position.set(5, 5, 5);
-            scene.add(pointLight);
 
-            // 3. 加载模型（用绝对路径）
+            // 3. 加载模型（修复GLTFLoader的调用方式）
             const loader = new THREE.GLTFLoader();
             const loadingText = document.querySelector('.loading');
 
             loader.load(
-                // 模型绝对路径（直接用GitHub仓库的文件链接）
                 'https://raw.githubusercontent.com/clara1210/Yuan-Ming-yuan/main/3d%20model.glb',
                 function (gltf) {
-                    // 模型加载成功
                     const model = gltf.scene;
                     model.scale.set(0.8, 0.8, 0.8);
-                    model.position.set(0, -1, 0);
                     scene.add(model);
                     loadingText.style.display = 'none';
                 },
@@ -63,15 +56,12 @@
                 }
             );
 
-            // 4. 相机位置
+            // 4. 相机与控制器
             camera.position.z = 5;
-
-            // 5. 轨道控制器
             const controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
-            controls.autoRotate = true;
 
-            // 6. 渲染循环
+            // 5. 渲染循环
             function animate() {
                 requestAnimationFrame(animate);
                 controls.update();
@@ -79,7 +69,7 @@
             }
             animate();
 
-            // 7. 窗口适配
+            // 6. 窗口适配
             window.addEventListener('resize', function() {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
