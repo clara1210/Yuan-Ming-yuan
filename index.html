@@ -19,15 +19,15 @@
         #model-desc {
             position: fixed;
             bottom: 40px; /* 上移至底部40px，完全避开手机端模型底部区域 */
-            left: 50%;
-            transform: translateX(-50%);
+            left: 20px;
+            right:20px;
             z-index: 9;
             background: transparent;
             color: #000;
             font-size: 17px; /* 手机版字体放大到17px，清晰可读 */
             line-height: 1.6; /* 行高适中，避免文字拥挤 */
-            text-align: center;
-            padding: 0 20px; /* 左右留足边距，避免文字贴边 */
+            text-align: left;
+            padding: 0; /* 左右留足边距，避免文字贴边 */
             max-width: 92%; /* 宽度适配手机，避免文字超出屏幕 */
             font-family: "Microsoft YaHei", sans-serif;
             margin: 0;
@@ -72,7 +72,7 @@
                 const model = gltf.scene;
                 model.scale.set(3.5, 3.5, 3.5);
                 model.position.set(0, -0.5, 0); // 模型居中，手机端视觉更协调
-                model.rotation.y = Math.PI / 2; // 模型正面朝向镜头
+                model.rotation.y = Math.PI / 4; // 模型正面朝向镜头
                 scene.add(model);
                 loadingText.style.display = 'none';
             },
@@ -111,3 +111,4 @@
     </script>
 </body>
 </html>
+
