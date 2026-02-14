@@ -15,25 +15,24 @@
             font-size: 20px;
             z-index: 100;
         }
-        /* 底部文字：左对齐、占满屏幕、自动换行（核心修改） */
+        /* 底部文字：左对齐、占满屏幕、手机清晰显示 */
         #model-desc {
             position: fixed;
-            bottom: 40px; /* 距离底部位置不变，可按需调整 */
-            left: 20px; /* 左边距20px，不贴边 */
-            right: 20px; /* 右边距20px，不贴边 */
+            bottom: 40px;
+            left: 20px;
+            right: 20px;
             z-index: 9;
             background: transparent;
             color: #000;
-            font-size: 17px; /* 手机版清晰字体大小 */
+            font-size: 17px;
             line-height: 1.6;
-            text-align: left; /* 左对齐（取消居中） */
-            padding: 0; /* 取消左右内边距，靠left/right控制边距 */
-            /* 去掉居中相关属性：left: 50% + transform: translateX(-50%) */
+            text-align: left;
+            padding: 0;
             font-family: "Microsoft YaHei", sans-serif;
             margin: 0;
             letter-spacing: 0.5px;
         }
-        /* 点击弹出的文字弹窗（顶部显示） */
+        /* 顶部弹窗：半透明背景、不挡模型 */
         .popup-desc {
             position: fixed;
             top: 30px;
@@ -78,11 +77,11 @@
 </head>
 <body>
     <div class="loading">加载中...</div>
-    <!-- 底部左对齐文字 -->
+    <!-- 底部左对齐说明文字 -->
     <div id="model-desc">
         它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
     </div>
-    <!-- 耳朵点击弹窗 -->
+    <!-- 耳朵点击弹窗（左右耳共用） -->
     <div class="popup-desc" id="ear-popup">
         <button class="popup-close">&times;</button>
         仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
@@ -98,7 +97,7 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // 全局变量
+        // 全局变量初始化
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -106,18 +105,17 @@
         renderer.setClearColor(0xffffff);
         document.body.appendChild(renderer.domElement);
 
-        // 光照
+        // 光照配置（提升模型质感，便于点击识别）
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
         directionalLight.position.set(5, 5, 5);
         scene.add(ambientLight, directionalLight);
 
-        // 弹窗元素
+        // 弹窗元素获取与关闭逻辑
         const earPopup = document.getElementById('ear-popup');
         const manePopup = document.getElementById('mane-popup');
         const closeButtons = document.querySelectorAll('.popup-close');
 
-        // 关闭弹窗事件
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 earPopup.style.display = 'none';
@@ -133,7 +131,7 @@
             }
         });
 
-        // 模型加载与点击检测
+        // 模型加载与核心交互逻辑
         const loader = new GLTFLoader();
         const loadingText = document.querySelector('.loading');
         let model = null;
@@ -146,10 +144,11 @@
                 model = gltf.scene;
                 model.scale.set(3.5, 3.5, 3.5);
                 model.position.set(0, -0.5, 0);
-                model.rotation.y = -Math.PI / 4;
+                model.rotation.y = -Math.PI / 4; // 向左转45°（最终确定角度）
                 scene.add(model);
                 loadingText.style.display = 'none';
 
+                // 标记所有Mesh为可点击
                 model.traverse((child) => {
                     if (child.isMesh) {
                         child.userData.clickable = true;
@@ -165,7 +164,7 @@
             }
         );
 
-        // 相机与控制器
+        // 相机与控制器配置（适配手机触摸）
         camera.position.z = 5;
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.autoRotate = false;
@@ -180,10 +179,11 @@
         };
         controls.reset();
 
-        // 点击/触摸事件
+        // 点击/触摸事件处理（核心：左右耳+鬓毛识别）
         function onPointerDown(e) {
             if (!model) return;
 
+            // 坐标转换（兼容手机触摸和电脑鼠标）
             if (e.type === 'touchstart') {
                 const touch = e.touches[0];
                 mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
@@ -193,6 +193,7 @@
                 mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
             }
 
+            // 射线检测点击部位
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(model.children, true);
 
@@ -201,11 +202,13 @@
                 const worldPosition = new THREE.Vector3();
                 clickedObject.getWorldPosition(worldPosition);
 
-                // 耳朵/鬓毛识别范围（可微调）
-                const isEar = worldPosition.x > 1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5;
-                const isMane = worldPosition.x > 0.8 && worldPosition.y < 0.5 && worldPosition.y > -0.3 && Math.abs(worldPosition.z) < 0.8;
+                // 精准识别范围（适配向左转后的模型）
+                const isLeftEar = worldPosition.x < -1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 左耳（x负方向）
+                const isRightEar = worldPosition.x > 1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 右耳（x正方向）
+                const isMane = worldPosition.x > -0.8 && worldPosition.x < 0.8 && worldPosition.y < 0.5 && worldPosition.y > -0.3; // 鬓毛（中间区域）
 
-                if (isEar) {
+                // 弹窗触发逻辑
+                if (isLeftEar || isRightEar) {
                     earPopup.style.display = 'block';
                     manePopup.style.display = 'none';
                 } else if (isMane) {
@@ -218,17 +221,18 @@
             }
         }
 
+        // 绑定交互事件
         window.addEventListener('click', onPointerDown);
         window.addEventListener('touchstart', onPointerDown);
 
-        // 窗口自适应
+        // 窗口自适应调整
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 动画循环
+        // 动画循环（保证模型交互顺滑）
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
@@ -238,4 +242,3 @@
     </script>
 </body>
 </html>
-
