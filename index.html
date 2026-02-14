@@ -14,72 +14,79 @@
             color: #000;
             font-size: 20px;
             z-index: 100;
-            cursor: pointer;
         }
+        /* 底部文字：左对齐、占满屏幕、手机清晰显示 */
         #model-desc {
             position: fixed;
-            bottom: 20px;
-            left: 15px;
-            right: 15px;
+            bottom: 40px;
+            left: 20px;
+            right: 20px;
             z-index: 9;
             background: transparent;
             color: #000;
-            font-size: 16px;
-            line-height: 1.5;
+            font-size: 17px;
+            line-height: 1.6;
             text-align: left;
             padding: 0;
             font-family: "Microsoft YaHei", sans-serif;
             margin: 0;
+            letter-spacing: 0.5px;
         }
+        /* 顶部弹窗：半透明背景、不挡模型 */
         .popup-desc {
             position: fixed;
-            top: 20px;
-            left: 15px;
-            right: 15px;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 99;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.95);
             color: #000;
-            font-size: 15px;
+            font-size: 16px;
             line-height: 1.5;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            padding: 18px 20px;
+            border-radius: 12px;
+            max-width: 85%;
+            text-align: left;
+            font-family: "Microsoft YaHei", sans-serif;
+            box-shadow: 0 3px 18px rgba(0,0,0,0.15);
             display: none;
         }
         .popup-close {
             position: absolute;
             top: 10px;
             right: 15px;
-            font-size: 20px;
-            color: #999;
+            font-size: 22px;
+            color: #666;
             cursor: pointer;
             background: none;
             border: none;
             padding: 0;
         }
-        .popup-close:active { color: #000; }
+        .popup-close:hover {
+            color: #000;
+        }
     </style>
-    <!-- 国内顶级稳定CDN（确保Three.js不被拦截） -->
     <script type="importmap">
         {
             "imports": {
-                "three": "https://cdn.byteintl.com/three.js/0.160.0/three.module.js",
-                "three/addons/": "https://cdn.byteintl.com/three.js/0.160.0/examples/jsm/"
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
             }
         }
     </script>
-    <!-- 提前引入WebGL检测（避免不兼容导致的静默失败） -->
-    <script src="https://cdn.byteintl.com/three.js/0.160.0/examples/jsm/Detector.js"></script>
 </head>
 <body>
     <div class="loading">加载中...</div>
+    <!-- 底部左对齐说明文字 -->
     <div id="model-desc">
         它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
     </div>
+    <!-- 耳朵点击弹窗（左右耳共用） -->
     <div class="popup-desc" id="ear-popup">
         <button class="popup-close">&times;</button>
         仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
     </div>
+    <!-- 鬓毛点击弹窗 -->
     <div class="popup-desc" id="mane-popup">
         <button class="popup-close">&times;</button>
         这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
@@ -90,175 +97,148 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // 第一步：检测WebGL兼容性（避免不兼容导致加载卡住）
+        // 全局变量初始化
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0xffffff);
+        document.body.appendChild(renderer.domElement);
+
+        // 光照配置（提升模型质感，便于点击识别）
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(ambientLight, directionalLight);
+
+        // 弹窗元素获取与关闭逻辑
+        const earPopup = document.getElementById('ear-popup');
+        const manePopup = document.getElementById('mane-popup');
+        const closeButtons = document.querySelectorAll('.popup-close');
+
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                earPopup.style.display = 'none';
+                manePopup.style.display = 'none';
+            });
+        });
+
+        // 点击空白处关闭弹窗
+        document.addEventListener('click', (e) => {
+            if (e.target === document.body || e.target === renderer.domElement) {
+                earPopup.style.display = 'none';
+                manePopup.style.display = 'none';
+            }
+        });
+
+        // 模型加载与核心交互逻辑
+        const loader = new GLTFLoader();
         const loadingText = document.querySelector('.loading');
-        if (!Detector.webgl) {
-            Detector.addGetWebGLMessage();
-            loadingText.innerText = '您的设备不支持3D渲染，请更换手机/浏览器';
-            loadingText.style.cursor = 'default';
-        } else {
-            // 全局变量初始化
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0xffffff);
-            document.body.appendChild(renderer.domElement);
+        let model = null;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
 
-            // 光照优化（提升模型识别度）
-            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
-            directionalLight1.position.set(3, 3, 3);
-            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
-            directionalLight2.position.set(-3, -3, -3);
-            scene.add(ambientLight, directionalLight1, directionalLight2);
+        loader.load(
+            './3d%20model.glb',
+            (gltf) => {
+                model = gltf.scene;
+                model.scale.set(3.5, 3.5, 3.5);
+                model.position.set(0, -0.5, 0);
+                model.rotation.y = -Math.PI / 4; // 向左转45°（最终确定角度）
+                scene.add(model);
+                loadingText.style.display = 'none';
 
-            // 弹窗逻辑
-            const earPopup = document.getElementById('ear-popup');
-            const manePopup = document.getElementById('mane-popup');
-            const closeButtons = document.querySelectorAll('.popup-close');
-            closeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    earPopup.style.display = 'none';
-                    manePopup.style.display = 'none';
+                // 标记所有Mesh为可点击
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.userData.clickable = true;
+                    }
                 });
-            });
-            document.addEventListener('click', (e) => {
-                if (e.target === document.body || e.target === renderer.domElement) {
+            },
+            (xhr) => {
+                console.log(`加载进度：${(xhr.loaded / xhr.total * 100).toFixed(0)}%`);
+            },
+            (error) => {
+                console.error('模型加载失败：', error);
+                loadingText.innerText = '加载失败';
+            }
+        );
+
+        // 相机与控制器配置（适配手机触摸）
+        camera.position.z = 5;
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.autoRotate = false;
+        controls.enableDamping = true;
+        controls.enableRotate = true;
+        controls.enableZoom = true;
+        controls.minDistance = 2;
+        controls.maxDistance = 8;
+        controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
+        controls.reset();
+
+        // 点击/触摸事件处理（核心：左右耳+鬓毛识别）
+        function onPointerDown(e) {
+            if (!model) return;
+
+            // 坐标转换（兼容手机触摸和电脑鼠标）
+            if (e.type === 'touchstart') {
+                const touch = e.touches[0];
+                mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (touch.clientY / window.innerHeight) * 2 + 1;
+            } else {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+            }
+
+            // 射线检测点击部位
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(model.children, true);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                const worldPosition = new THREE.Vector3();
+                clickedObject.getWorldPosition(worldPosition);
+
+                // 精准识别范围（适配向左转后的模型）
+                const isLeftEar = worldPosition.x < -1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 左耳（x负方向）
+                const isRightEar = worldPosition.x > 1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 右耳（x正方向）
+                const isMane = worldPosition.x > -0.8 && worldPosition.x < 0.8 && worldPosition.y < 0.5 && worldPosition.y > -0.3; // 鬓毛（中间区域）
+
+                // 弹窗触发逻辑
+                if (isLeftEar || isRightEar) {
+                    earPopup.style.display = 'block';
+                    manePopup.style.display = 'none';
+                } else if (isMane) {
+                    manePopup.style.display = 'block';
+                    earPopup.style.display = 'none';
+                } else {
                     earPopup.style.display = 'none';
                     manePopup.style.display = 'none';
                 }
-            });
-
-            // 模型加载核心逻辑（修复路径 + 超时处理 + 详细错误反馈）
-            const loader = new GLTFLoader();
-            let model = null;
-            const raycaster = new THREE.Raycaster();
-            const mouse = new THREE.Vector2();
-
-            // 🔥 已精准匹配你的仓库路径（无需修改，直接用）🔥
-            // 格式：https://用户名.github.io/仓库名/模型文件名
-            const modelUrl = 'https://clara1210.github.io/Yuan-Ming-yuan/3dmodel.glb';
-
-            // 设置加载超时（15秒未加载完成提示网络问题）
-            const timeoutTimer = setTimeout(() => {
-                loadingText.innerText = '网络加载超时，点击重试';
-                console.error('模型加载超时：可能是网络不稳定或路径错误');
-            }, 15000);
-
-            loader.load(
-                modelUrl,
-                (gltf) => {
-                    clearTimeout(timeoutTimer); // 清除超时计时器
-                    model = gltf.scene;
-                    model.scale.set(3.8, 3.8, 3.8);
-                    model.position.set(0, -0.6, 0);
-                    model.rotation.y = -Math.PI / 4;
-                    scene.add(model);
-                    loadingText.style.display = 'none';
-
-                    // 标记可点击Mesh
-                    model.traverse((child) => {
-                        if (child.isMesh) {
-                            child.userData.clickable = true;
-                            child.renderOrder = 1;
-                        }
-                    });
-                },
-                (xhr) => {
-                    // 实时显示加载进度（让用户明确知道在加载）
-                    const progress = (xhr.loaded / xhr.total * 100).toFixed(0);
-                    loadingText.innerText = `加载中...${progress}%`;
-                },
-                (error) => {
-                    clearTimeout(timeoutTimer);
-                    console.error('模型加载失败详细原因：', error);
-                    // 根据错误类型显示对应提示
-                    if (error.message.includes('404')) {
-                        loadingText.innerText = '模型文件未找到（路径错误），点击重试';
-                    } else if (error.message.includes('CORS')) {
-                        loadingText.innerText = '跨域错误（小程序域名未配置），点击重试';
-                    } else {
-                        loadingText.innerText = '加载失败，点击重试';
-                    }
-                    loadingText.addEventListener('click', () => window.location.reload());
-                }
-            );
-
-            // 相机与控制器（适配小程序触摸）
-            camera.position.z = 5.5;
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.autoRotate = false;
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.enableRotate = true;
-            controls.enableZoom = true;
-            controls.minDistance = 3;
-            controls.maxDistance = 7;
-            controls.touches = {
-                ONE: THREE.TOUCH.ROTATE,
-                TWO: THREE.TOUCH.DOLLY_PAN
-            };
-            controls.reset();
-
-            // 点击/触摸事件处理
-            function onPointerDown(e) {
-                if (!model) return;
-
-                let clientX, clientY;
-                if (e.type === 'touchstart') {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-                mouse.x = (clientX / window.innerWidth) * 2 - 1;
-                mouse.y = - (clientY / window.innerHeight) * 2 + 1;
-
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(model.children, true);
-
-                if (intersects.length > 0) {
-                    const clickedObject = intersects[0].object;
-                    const worldPosition = new THREE.Vector3();
-                    clickedObject.getWorldPosition(worldPosition);
-
-                    const isLeftEar = worldPosition.x < -1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
-                    const isRightEar = worldPosition.x > 1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
-                    const isMane = worldPosition.x > -1.2 && worldPosition.x < 1.2 && worldPosition.y < 0.6 && worldPosition.y > -0.5;
-
-                    if (isLeftEar || isRightEar) {
-                        earPopup.style.display = 'block';
-                        manePopup.style.display = 'none';
-                    } else if (isMane) {
-                        manePopup.style.display = 'block';
-                        earPopup.style.display = 'none';
-                    } else {
-                        earPopup.style.display = 'none';
-                        manePopup.style.display = 'none';
-                    }
-                }
             }
-
-            window.addEventListener('click', onPointerDown);
-            window.addEventListener('touchstart', onPointerDown);
-
-            // 窗口自适应
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            // 动画循环
-            function animate() {
-                requestAnimationFrame(animate);
-                controls.update();
-                renderer.render(scene, camera);
-            }
-            animate();
         }
+
+        // 绑定交互事件
+        window.addEventListener('click', onPointerDown);
+        window.addEventListener('touchstart', onPointerDown);
+
+        // 窗口自适应调整
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 动画循环（保证模型交互顺滑）
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
     </script>
 </body>
 </html>
