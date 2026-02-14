@@ -15,6 +15,23 @@
             font-size: 20px;
             z-index: 10;
         }
+        /* 马首介绍文字：黑色、透明背景、模型下方居中、与模型同步加载 */
+        #model-desc {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9;
+            background: transparent;
+            color: #000;
+            font-size: 16px;
+            line-height: 1.5;
+            text-align: center;
+            padding: 0 20px;
+            max-width: 90%;
+            font-family: "Microsoft YaHei", sans-serif;
+            margin: 0;
+        }
     </style>
     <script type="importmap">
         {
@@ -27,6 +44,10 @@
 </head>
 <body>
     <div class="loading">加载中...</div>
+    <!-- 新增文字介绍，和模型同步加载 -->
+    <div id="model-desc">
+        它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
+    </div>
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -51,11 +72,7 @@
                 const model = gltf.scene;
                 model.scale.set(3.5, 3.5, 3.5);
                 model.position.set(0, -0.5, 0); // 模型居中
-                
-                // 核心修改：调整模型初始旋转角度（让正面朝向镜头）
-                // 通过Y轴旋转180度（根据实际模型方向，可微调数值）
-                model.rotation.y = Math.PI / 2; // 180度（弧度制）
-                
+                model.rotation.y = Math.PI / 2; // 模型正面朝向镜头
                 scene.add(model);
                 loadingText.style.display = 'none';
             },
@@ -72,7 +89,7 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.autoRotate = false;
         controls.autoRotateSpeed = 0;
-        controls.enableDamping = true; // 恢复顺滑阻尼
+        controls.enableDamping = true;
         controls.enableRotate = true;
         controls.enableZoom = true;
         controls.minDistance = 2;
@@ -94,4 +111,3 @@
     </script>
 </body>
 </html>
-
