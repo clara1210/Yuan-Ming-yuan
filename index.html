@@ -14,7 +14,7 @@
             color: #000;
             font-size: 20px;
             z-index: 100;
-            cursor: pointer; /* 点击重试光标 */
+            cursor: pointer;
         }
         #model-desc {
             position: fixed;
@@ -59,15 +59,17 @@
         }
         .popup-close:active { color: #000; }
     </style>
-    <!-- 国内稳定CDN（替换原CDN，避免拦截） -->
+    <!-- 国内顶级稳定CDN（确保Three.js不被拦截） -->
     <script type="importmap">
         {
             "imports": {
-                "three": "https://lf3-cdn-tos.bytecdntp.com/cdn/expire-100-M/three.js/0.160.0/three.module.js",
-                "three/addons/": "https://lf3-cdn-tos.bytecdntp.com/cdn/expire-100-M/three.js/0.160.0/examples/jsm/"
+                "three": "https://cdn.byteintl.com/three.js/0.160.0/three.module.js",
+                "three/addons/": "https://cdn.byteintl.com/three.js/0.160.0/examples/jsm/"
             }
         }
     </script>
+    <!-- 提前引入WebGL检测（避免不兼容导致的静默失败） -->
+    <script src="https://cdn.byteintl.com/three.js/0.160.0/examples/jsm/Detector.js"></script>
 </head>
 <body>
     <div class="loading">加载中...</div>
@@ -88,153 +90,175 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // 全局变量初始化
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0xffffff);
-        document.body.appendChild(renderer.domElement);
-
-        // 光照优化（提升模型识别度）
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
-        directionalLight1.position.set(3, 3, 3);
-        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
-        directionalLight2.position.set(-3, -3, -3);
-        scene.add(ambientLight, directionalLight1, directionalLight2);
-
-        // 弹窗逻辑
-        const earPopup = document.getElementById('ear-popup');
-        const manePopup = document.getElementById('mane-popup');
-        const closeButtons = document.querySelectorAll('.popup-close');
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                earPopup.style.display = 'none';
-                manePopup.style.display = 'none';
-            });
-        });
-        document.addEventListener('click', (e) => {
-            if (e.target === document.body || e.target === renderer.domElement) {
-                earPopup.style.display = 'none';
-                manePopup.style.display = 'none';
-            }
-        });
-
-        // 模型加载核心逻辑（绝对路径 + 错误反馈 + 重试）
-        const loader = new GLTFLoader();
+        // 第一步：检测WebGL兼容性（避免不兼容导致加载卡住）
         const loadingText = document.querySelector('.loading');
-        let model = null;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
+        if (!Detector.webgl) {
+            Detector.addGetWebGLMessage();
+            loadingText.innerText = '您的设备不支持3D渲染，请更换手机/浏览器';
+            loadingText.style.cursor = 'default';
+        } else {
+            // 全局变量初始化
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0xffffff);
+            document.body.appendChild(renderer.domElement);
 
-        // 🔥 关键修改：替换为你的GitHub Pages绝对路径 🔥
-        // 格式：https://你的用户名.github.io/你的仓库名/3dmodel.glb
-        const modelUrl = 'https://你的用户名.github.io/Yuan-Ming-yuan/3dmodel.glb';
+            // 光照优化（提升模型识别度）
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight1.position.set(3, 3, 3);
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            directionalLight2.position.set(-3, -3, -3);
+            scene.add(ambientLight, directionalLight1, directionalLight2);
 
-        loader.load(
-            modelUrl,
-            (gltf) => {
-                model = gltf.scene;
-                model.scale.set(3.8, 3.8, 3.8);
-                model.position.set(0, -0.6, 0);
-                model.rotation.y = -Math.PI / 4;
-                scene.add(model);
-                loadingText.style.display = 'none';
-
-                // 标记可点击Mesh
-                model.traverse((child) => {
-                    if (child.isMesh) {
-                        child.userData.clickable = true;
-                        child.renderOrder = 1;
-                    }
-                });
-            },
-            (xhr) => {
-                // 显示加载进度，避免用户误以为卡住
-                loadingText.innerText = `加载中...${(xhr.loaded / xhr.total * 100).toFixed(0)}%`;
-            },
-            (error) => {
-                console.error('模型加载失败原因：', error);
-                loadingText.innerText = '加载失败，点击重试';
-                // 点击重试功能
-                loadingText.addEventListener('click', () => window.location.reload());
-            }
-        );
-
-        // 相机与控制器（适配小程序触摸）
-        camera.position.z = 5.5;
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.autoRotate = false;
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.enableRotate = true;
-        controls.enableZoom = true;
-        controls.minDistance = 3;
-        controls.maxDistance = 7;
-        controls.touches = {
-            ONE: THREE.TOUCH.ROTATE,
-            TWO: THREE.TOUCH.DOLLY_PAN
-        };
-        controls.reset();
-
-        // 点击/触摸事件处理
-        function onPointerDown(e) {
-            if (!model) return;
-
-            let clientX, clientY;
-            if (e.type === 'touchstart') {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-            mouse.x = (clientX / window.innerWidth) * 2 - 1;
-            mouse.y = - (clientY / window.innerHeight) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(model.children, true);
-
-            if (intersects.length > 0) {
-                const clickedObject = intersects[0].object;
-                const worldPosition = new THREE.Vector3();
-                clickedObject.getWorldPosition(worldPosition);
-
-                const isLeftEar = worldPosition.x < -1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
-                const isRightEar = worldPosition.x > 1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
-                const isMane = worldPosition.x > -1.2 && worldPosition.x < 1.2 && worldPosition.y < 0.6 && worldPosition.y > -0.5;
-
-                if (isLeftEar || isRightEar) {
-                    earPopup.style.display = 'block';
-                    manePopup.style.display = 'none';
-                } else if (isMane) {
-                    manePopup.style.display = 'block';
+            // 弹窗逻辑
+            const earPopup = document.getElementById('ear-popup');
+            const manePopup = document.getElementById('mane-popup');
+            const closeButtons = document.querySelectorAll('.popup-close');
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
                     earPopup.style.display = 'none';
-                } else {
+                    manePopup.style.display = 'none';
+                });
+            });
+            document.addEventListener('click', (e) => {
+                if (e.target === document.body || e.target === renderer.domElement) {
                     earPopup.style.display = 'none';
                     manePopup.style.display = 'none';
                 }
+            });
+
+            // 模型加载核心逻辑（修复路径 + 超时处理 + 详细错误反馈）
+            const loader = new GLTFLoader();
+            let model = null;
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            // 🔥 已精准匹配你的仓库路径（无需修改，直接用）🔥
+            // 格式：https://用户名.github.io/仓库名/模型文件名
+            const modelUrl = 'https://clara1210.github.io/Yuan-Ming-yuan/3dmodel.glb';
+
+            // 设置加载超时（15秒未加载完成提示网络问题）
+            const timeoutTimer = setTimeout(() => {
+                loadingText.innerText = '网络加载超时，点击重试';
+                console.error('模型加载超时：可能是网络不稳定或路径错误');
+            }, 15000);
+
+            loader.load(
+                modelUrl,
+                (gltf) => {
+                    clearTimeout(timeoutTimer); // 清除超时计时器
+                    model = gltf.scene;
+                    model.scale.set(3.8, 3.8, 3.8);
+                    model.position.set(0, -0.6, 0);
+                    model.rotation.y = -Math.PI / 4;
+                    scene.add(model);
+                    loadingText.style.display = 'none';
+
+                    // 标记可点击Mesh
+                    model.traverse((child) => {
+                        if (child.isMesh) {
+                            child.userData.clickable = true;
+                            child.renderOrder = 1;
+                        }
+                    });
+                },
+                (xhr) => {
+                    // 实时显示加载进度（让用户明确知道在加载）
+                    const progress = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    loadingText.innerText = `加载中...${progress}%`;
+                },
+                (error) => {
+                    clearTimeout(timeoutTimer);
+                    console.error('模型加载失败详细原因：', error);
+                    // 根据错误类型显示对应提示
+                    if (error.message.includes('404')) {
+                        loadingText.innerText = '模型文件未找到（路径错误），点击重试';
+                    } else if (error.message.includes('CORS')) {
+                        loadingText.innerText = '跨域错误（小程序域名未配置），点击重试';
+                    } else {
+                        loadingText.innerText = '加载失败，点击重试';
+                    }
+                    loadingText.addEventListener('click', () => window.location.reload());
+                }
+            );
+
+            // 相机与控制器（适配小程序触摸）
+            camera.position.z = 5.5;
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.autoRotate = false;
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableRotate = true;
+            controls.enableZoom = true;
+            controls.minDistance = 3;
+            controls.maxDistance = 7;
+            controls.touches = {
+                ONE: THREE.TOUCH.ROTATE,
+                TWO: THREE.TOUCH.DOLLY_PAN
+            };
+            controls.reset();
+
+            // 点击/触摸事件处理
+            function onPointerDown(e) {
+                if (!model) return;
+
+                let clientX, clientY;
+                if (e.type === 'touchstart') {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                mouse.x = (clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(model.children, true);
+
+                if (intersects.length > 0) {
+                    const clickedObject = intersects[0].object;
+                    const worldPosition = new THREE.Vector3();
+                    clickedObject.getWorldPosition(worldPosition);
+
+                    const isLeftEar = worldPosition.x < -1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
+                    const isRightEar = worldPosition.x > 1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
+                    const isMane = worldPosition.x > -1.2 && worldPosition.x < 1.2 && worldPosition.y < 0.6 && worldPosition.y > -0.5;
+
+                    if (isLeftEar || isRightEar) {
+                        earPopup.style.display = 'block';
+                        manePopup.style.display = 'none';
+                    } else if (isMane) {
+                        manePopup.style.display = 'block';
+                        earPopup.style.display = 'none';
+                    } else {
+                        earPopup.style.display = 'none';
+                        manePopup.style.display = 'none';
+                    }
+                }
             }
+
+            window.addEventListener('click', onPointerDown);
+            window.addEventListener('touchstart', onPointerDown);
+
+            // 窗口自适应
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // 动画循环
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
         }
-
-        window.addEventListener('click', onPointerDown);
-        window.addEventListener('touchstart', onPointerDown);
-
-        // 窗口自适应
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // 动画循环
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
     </script>
 </body>
 </html>
