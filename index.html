@@ -13,25 +13,58 @@
             transform: translate(-50%, -50%);
             color: #000;
             font-size: 20px;
-            z-index: 10;
+            z-index: 100;
         }
-        /* 手机版专属优化：大字体、紧凑布局、上移避模型 */
+        /* 底部文字：左对齐、占满屏幕、自动换行（核心修改） */
         #model-desc {
             position: fixed;
-            bottom: 40px; /* 上移至底部40px，完全避开手机端模型底部区域 */
-            left: 20px;
-            right:20px;
+            bottom: 40px; /* 距离底部位置不变，可按需调整 */
+            left: 20px; /* 左边距20px，不贴边 */
+            right: 20px; /* 右边距20px，不贴边 */
             z-index: 9;
             background: transparent;
             color: #000;
-            font-size: 17px; /* 手机版字体放大到17px，清晰可读 */
-            line-height: 1.6; /* 行高适中，避免文字拥挤 */
-            text-align: left;
-            padding: 0; /* 左右留足边距，避免文字贴边 */
-            max-width: 92%; /* 宽度适配手机，避免文字超出屏幕 */
+            font-size: 17px; /* 手机版清晰字体大小 */
+            line-height: 1.6;
+            text-align: left; /* 左对齐（取消居中） */
+            padding: 0; /* 取消左右内边距，靠left/right控制边距 */
+            /* 去掉居中相关属性：left: 50% + transform: translateX(-50%) */
             font-family: "Microsoft YaHei", sans-serif;
             margin: 0;
-            letter-spacing: 0.5px; /* 轻微加字距，提升手机阅读舒适度 */
+            letter-spacing: 0.5px;
+        }
+        /* 点击弹出的文字弹窗（顶部显示） */
+        .popup-desc {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99;
+            background: rgba(255, 255, 255, 0.95);
+            color: #000;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 18px 20px;
+            border-radius: 12px;
+            max-width: 85%;
+            text-align: left;
+            font-family: "Microsoft YaHei", sans-serif;
+            box-shadow: 0 3px 18px rgba(0,0,0,0.15);
+            display: none;
+        }
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 22px;
+            color: #666;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .popup-close:hover {
+            color: #000;
         }
     </style>
     <script type="importmap">
@@ -45,36 +78,83 @@
 </head>
 <body>
     <div class="loading">加载中...</div>
+    <!-- 底部左对齐文字 -->
     <div id="model-desc">
         它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
     </div>
+    <!-- 耳朵点击弹窗 -->
+    <div class="popup-desc" id="ear-popup">
+        <button class="popup-close">&times;</button>
+        仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
+    </div>
+    <!-- 鬓毛点击弹窗 -->
+    <div class="popup-desc" id="mane-popup">
+        <button class="popup-close">&times;</button>
+        这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
+    </div>
+
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+        // 全局变量
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0xffffff);
         document.body.appendChild(renderer.domElement);
 
+        // 光照
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(ambientLight, directionalLight);
 
+        // 弹窗元素
+        const earPopup = document.getElementById('ear-popup');
+        const manePopup = document.getElementById('mane-popup');
+        const closeButtons = document.querySelectorAll('.popup-close');
+
+        // 关闭弹窗事件
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                earPopup.style.display = 'none';
+                manePopup.style.display = 'none';
+            });
+        });
+
+        // 点击空白处关闭弹窗
+        document.addEventListener('click', (e) => {
+            if (e.target === document.body || e.target === renderer.domElement) {
+                earPopup.style.display = 'none';
+                manePopup.style.display = 'none';
+            }
+        });
+
+        // 模型加载与点击检测
         const loader = new GLTFLoader();
         const loadingText = document.querySelector('.loading');
+        let model = null;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
 
         loader.load(
             './3d%20model.glb',
             (gltf) => {
-                const model = gltf.scene;
+                model = gltf.scene;
                 model.scale.set(3.5, 3.5, 3.5);
-                model.position.set(0, -0.5, 0); // 模型居中，手机端视觉更协调
-                model.rotation.y = Math.PI / 4; // 模型正面朝向镜头
+                model.position.set(0, -0.5, 0);
+                model.rotation.y = -Math.PI / 2;
                 scene.add(model);
                 loadingText.style.display = 'none';
+
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.userData.clickable = true;
+                    }
+                });
             },
             (xhr) => {
                 console.log(`加载进度：${(xhr.loaded / xhr.total * 100).toFixed(0)}%`);
@@ -85,30 +165,76 @@
             }
         );
 
+        // 相机与控制器
         camera.position.z = 5;
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.autoRotate = false;
-        controls.autoRotateSpeed = 0;
         controls.enableDamping = true;
         controls.enableRotate = true;
         controls.enableZoom = true;
         controls.minDistance = 2;
-        controls.maxDistance = 8; // 手机端缩小最大缩放距离，避免模型过大遮挡文字
+        controls.maxDistance = 8;
+        controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
         controls.reset();
 
+        // 点击/触摸事件
+        function onPointerDown(e) {
+            if (!model) return;
+
+            if (e.type === 'touchstart') {
+                const touch = e.touches[0];
+                mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (touch.clientY / window.innerHeight) * 2 + 1;
+            } else {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+            }
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(model.children, true);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                const worldPosition = new THREE.Vector3();
+                clickedObject.getWorldPosition(worldPosition);
+
+                // 耳朵/鬓毛识别范围（可微调）
+                const isEar = worldPosition.x > 1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5;
+                const isMane = worldPosition.x > 0.8 && worldPosition.y < 0.5 && worldPosition.y > -0.3 && Math.abs(worldPosition.z) < 0.8;
+
+                if (isEar) {
+                    earPopup.style.display = 'block';
+                    manePopup.style.display = 'none';
+                } else if (isMane) {
+                    manePopup.style.display = 'block';
+                    earPopup.style.display = 'none';
+                } else {
+                    earPopup.style.display = 'none';
+                    manePopup.style.display = 'none';
+                }
+            }
+        }
+
+        window.addEventListener('click', onPointerDown);
+        window.addEventListener('touchstart', onPointerDown);
+
+        // 窗口自适应
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 动画循环
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
         }
         animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
-
