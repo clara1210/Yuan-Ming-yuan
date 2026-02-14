@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>圆明园构件3D展示</title>
     <style>
         body { margin: 0; overflow: hidden; background: #fff !important; }
@@ -15,22 +15,23 @@
             font-size: 20px;
             z-index: 10;
         }
-        /* 马首介绍文字：黑色、透明背景、模型下方居中、与模型同步加载 */
+        /* 手机版专属优化：大字体、紧凑布局、上移避模型 */
         #model-desc {
             position: fixed;
-            bottom: 30px;
+            bottom: 40px; /* 上移至底部40px，完全避开手机端模型底部区域 */
             left: 50%;
             transform: translateX(-50%);
             z-index: 9;
             background: transparent;
             color: #000;
-            font-size: 16px;
-            line-height: 1.5;
+            font-size: 17px; /* 手机版字体放大到17px，清晰可读 */
+            line-height: 1.6; /* 行高适中，避免文字拥挤 */
             text-align: center;
-            padding: 0 20px;
-            max-width: 90%;
+            padding: 0 20px; /* 左右留足边距，避免文字贴边 */
+            max-width: 92%; /* 宽度适配手机，避免文字超出屏幕 */
             font-family: "Microsoft YaHei", sans-serif;
             margin: 0;
+            letter-spacing: 0.5px; /* 轻微加字距，提升手机阅读舒适度 */
         }
     </style>
     <script type="importmap">
@@ -44,7 +45,6 @@
 </head>
 <body>
     <div class="loading">加载中...</div>
-    <!-- 新增文字介绍，和模型同步加载 -->
     <div id="model-desc">
         它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
     </div>
@@ -71,7 +71,7 @@
             (gltf) => {
                 const model = gltf.scene;
                 model.scale.set(3.5, 3.5, 3.5);
-                model.position.set(0, -0.5, 0); // 模型居中
+                model.position.set(0, -0.5, 0); // 模型居中，手机端视觉更协调
                 model.rotation.y = Math.PI / 2; // 模型正面朝向镜头
                 scene.add(model);
                 loadingText.style.display = 'none';
@@ -93,7 +93,7 @@
         controls.enableRotate = true;
         controls.enableZoom = true;
         controls.minDistance = 2;
-        controls.maxDistance = 10;
+        controls.maxDistance = 8; // 手机端缩小最大缩放距离，避免模型过大遮挡文字
         controls.reset();
 
         function animate() {
