@@ -14,11 +14,11 @@
             color: #000;
             font-size: 20px;
             z-index: 100;
+            cursor: pointer; /* 点击重试光标 */
         }
-        /* 底部文字：左对齐、占满屏幕、手机清晰显示 */
         #model-desc {
             position: fixed;
-            bottom: 20px; /* 适配小程序底部安全区 */
+            bottom: 20px;
             left: 15px;
             right: 15px;
             z-index: 9;
@@ -31,7 +31,6 @@
             font-family: "Microsoft YaHei", sans-serif;
             margin: 0;
         }
-        /* 顶部弹窗：适配小程序，优化触摸体验 */
         .popup-desc {
             position: fixed;
             top: 20px;
@@ -60,28 +59,25 @@
         }
         .popup-close:active { color: #000; }
     </style>
-    <!-- 小程序兼容的Three.js CDN（国内节点，避免跨域） -->
+    <!-- 国内稳定CDN（替换原CDN，避免拦截） -->
     <script type="importmap">
         {
             "imports": {
-                "three": "https://cdn.staticfile.org/three.js/0.160.0/three.module.js",
-                "three/addons/": "https://cdn.staticfile.org/three.js/0.160.0/examples/jsm/"
+                "three": "https://lf3-cdn-tos.bytecdntp.com/cdn/expire-100-M/three.js/0.160.0/three.module.js",
+                "three/addons/": "https://lf3-cdn-tos.bytecdntp.com/cdn/expire-100-M/three.js/0.160.0/examples/jsm/"
             }
         }
     </script>
 </head>
 <body>
     <div class="loading">加载中...</div>
-    <!-- 底部左对齐说明文字 -->
     <div id="model-desc">
         它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
     </div>
-    <!-- 耳朵点击弹窗（左右耳共用） -->
     <div class="popup-desc" id="ear-popup">
         <button class="popup-close">&times;</button>
         仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
     </div>
-    <!-- 鬓毛点击弹窗 -->
     <div class="popup-desc" id="mane-popup">
         <button class="popup-close">&times;</button>
         这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
@@ -100,7 +96,7 @@
         renderer.setClearColor(0xffffff);
         document.body.appendChild(renderer.domElement);
 
-        // 优化光照（提升模型轮廓，便于点击识别）
+        // 光照优化（提升模型识别度）
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
         directionalLight1.position.set(3, 3, 3);
@@ -108,19 +104,16 @@
         directionalLight2.position.set(-3, -3, -3);
         scene.add(ambientLight, directionalLight1, directionalLight2);
 
-        // 弹窗元素获取与关闭逻辑
+        // 弹窗逻辑
         const earPopup = document.getElementById('ear-popup');
         const manePopup = document.getElementById('mane-popup');
         const closeButtons = document.querySelectorAll('.popup-close');
-
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 earPopup.style.display = 'none';
                 manePopup.style.display = 'none';
             });
         });
-
-        // 点击空白处关闭弹窗
         document.addEventListener('click', (e) => {
             if (e.target === document.body || e.target === renderer.domElement) {
                 earPopup.style.display = 'none';
@@ -128,48 +121,53 @@
             }
         });
 
-        // 模型加载与核心交互逻辑
+        // 模型加载核心逻辑（绝对路径 + 错误反馈 + 重试）
         const loader = new GLTFLoader();
         const loadingText = document.querySelector('.loading');
         let model = null;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        // 核心修改：模型路径改为重命名后的 3dmodel.glb（无空格）
+        // 🔥 关键修改：替换为你的GitHub Pages绝对路径 🔥
+        // 格式：https://你的用户名.github.io/你的仓库名/3dmodel.glb
+        const modelUrl = 'https://你的用户名.github.io/Yuan-Ming-yuan/3dmodel.glb';
+
         loader.load(
-            './3dmodel.glb',
+            modelUrl,
             (gltf) => {
                 model = gltf.scene;
-                model.scale.set(3.8, 3.8, 3.8); // 适配小程序显示比例
+                model.scale.set(3.8, 3.8, 3.8);
                 model.position.set(0, -0.6, 0);
-                model.rotation.y = -Math.PI / 4; // 向左转45°
+                model.rotation.y = -Math.PI / 4;
                 scene.add(model);
                 loadingText.style.display = 'none';
 
-                // 标记所有Mesh为可点击，提升渲染优先级
+                // 标记可点击Mesh
                 model.traverse((child) => {
                     if (child.isMesh) {
                         child.userData.clickable = true;
-                        child.renderOrder = 1; // 避免点击检测穿透
+                        child.renderOrder = 1;
                     }
                 });
             },
             (xhr) => {
-                // 显示加载进度，提升用户体验
+                // 显示加载进度，避免用户误以为卡住
                 loadingText.innerText = `加载中...${(xhr.loaded / xhr.total * 100).toFixed(0)}%`;
             },
             (error) => {
-                console.error('模型加载失败：', error);
-                loadingText.innerText = '加载失败，请刷新重试';
+                console.error('模型加载失败原因：', error);
+                loadingText.innerText = '加载失败，点击重试';
+                // 点击重试功能
+                loadingText.addEventListener('click', () => window.location.reload());
             }
         );
 
-        // 相机与控制器配置（适配手机/小程序触摸）
+        // 相机与控制器（适配小程序触摸）
         camera.position.z = 5.5;
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.autoRotate = false;
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05; // 提升触摸顺滑度
+        controls.dampingFactor = 0.05;
         controls.enableRotate = true;
         controls.enableZoom = true;
         controls.minDistance = 3;
@@ -180,11 +178,10 @@
         };
         controls.reset();
 
-        // 点击/触摸事件处理（优化小程序适配和识别范围）
+        // 点击/触摸事件处理
         function onPointerDown(e) {
             if (!model) return;
 
-            // 坐标转换（兼容小程序web-view视口）
             let clientX, clientY;
             if (e.type === 'touchstart') {
                 clientX = e.touches[0].clientX;
@@ -196,7 +193,6 @@
             mouse.x = (clientX / window.innerWidth) * 2 - 1;
             mouse.y = - (clientY / window.innerHeight) * 2 + 1;
 
-            // 射线检测点击部位
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(model.children, true);
 
@@ -205,12 +201,10 @@
                 const worldPosition = new THREE.Vector3();
                 clickedObject.getWorldPosition(worldPosition);
 
-                // 扩大识别范围，适配模型偏移（小程序中更易点击）
                 const isLeftEar = worldPosition.x < -1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
                 const isRightEar = worldPosition.x > 1.0 && worldPosition.y > 0.3 && worldPosition.z > -0.8;
                 const isMane = worldPosition.x > -1.2 && worldPosition.x < 1.2 && worldPosition.y < 0.6 && worldPosition.y > -0.5;
 
-                // 弹窗触发逻辑
                 if (isLeftEar || isRightEar) {
                     earPopup.style.display = 'block';
                     manePopup.style.display = 'none';
@@ -224,18 +218,17 @@
             }
         }
 
-        // 绑定交互事件（兼容点击和触摸）
         window.addEventListener('click', onPointerDown);
         window.addEventListener('touchstart', onPointerDown);
 
-        // 窗口自适应（适配小程序旋转屏幕）
+        // 窗口自适应
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 动画循环（保证小程序中流畅运行）
+        // 动画循环
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
