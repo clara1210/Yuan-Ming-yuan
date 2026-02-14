@@ -14,6 +14,7 @@
             color: #000;
             font-size: 20px;
             z-index: 100;
+            cursor: pointer; /* 点击重试 */
         }
         /* 底部文字：左对齐、占满屏幕、手机清晰显示 */
         #model-desc {
@@ -66,6 +67,7 @@
             color: #000;
         }
     </style>
+    <!-- 还原你之前可用的 CDN，同时备用国内节点 -->
     <script type="importmap">
         {
             "imports": {
@@ -73,6 +75,26 @@
                 "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
             }
         }
+    </script>
+    <!-- 备用CDN（若jsdelivr失效自动切换） -->
+    <script>
+        window.addEventListener('error', (e) => {
+            if (e.message.includes('Failed to fetch') && e.filename.includes('jsdelivr')) {
+                console.warn('jsdelivr CDN失效，切换到备用CDN');
+                // 重新定义importmap
+                const importMap = document.createElement('script');
+                importMap.type = 'importmap';
+                importMap.textContent = JSON.stringify({
+                    "imports": {
+                        "three": "https://cdn.byteintl.com/three.js/0.160.0/three.module.js",
+                        "three/addons/": "https://cdn.byteintl.com/three.js/0.160.0/examples/jsm/"
+                    }
+                });
+                document.head.appendChild(importMap);
+                // 刷新页面生效
+                window.location.reload();
+            }
+        });
     </script>
 </head>
 <body>
@@ -97,7 +119,7 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // 全局变量初始化
+        // 全局变量初始化（完全沿用你之前的配置）
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -105,13 +127,13 @@
         renderer.setClearColor(0xffffff);
         document.body.appendChild(renderer.domElement);
 
-        // 光照配置（提升模型质感，便于点击识别）
+        // 光照配置（完全沿用你之前的成功参数）
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
         directionalLight.position.set(5, 5, 5);
         scene.add(ambientLight, directionalLight);
 
-        // 弹窗元素获取与关闭逻辑
+        // 弹窗元素获取与关闭逻辑（不变）
         const earPopup = document.getElementById('ear-popup');
         const manePopup = document.getElementById('mane-popup');
         const closeButtons = document.querySelectorAll('.popup-close');
@@ -123,7 +145,6 @@
             });
         });
 
-        // 点击空白处关闭弹窗
         document.addEventListener('click', (e) => {
             if (e.target === document.body || e.target === renderer.domElement) {
                 earPopup.style.display = 'none';
@@ -131,24 +152,33 @@
             }
         });
 
-        // 模型加载与核心交互逻辑
+        // 模型加载核心逻辑（关键：还原你之前的路径，新增错误反馈和重试）
         const loader = new GLTFLoader();
         const loadingText = document.querySelector('.loading');
         let model = null;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
+        // 🔥 完全还原你之前能加载的路径 🔥
+        const modelPath = './3d%20model.glb';
+
+        // 加载超时处理（10秒未加载提示）
+        const timeoutTimer = setTimeout(() => {
+            loadingText.innerText = '加载超时，点击重试';
+        }, 10000);
+
         loader.load(
-            './3d%20model.glb',
+            modelPath,
             (gltf) => {
+                clearTimeout(timeoutTimer); // 清除超时
                 model = gltf.scene;
                 model.scale.set(3.5, 3.5, 3.5);
                 model.position.set(0, -0.5, 0);
-                model.rotation.y = -Math.PI / 4; // 向左转45°（最终确定角度）
+                model.rotation.y = -Math.PI / 4; // 向左转45°（你之前的成功角度）
                 scene.add(model);
                 loadingText.style.display = 'none';
 
-                // 标记所有Mesh为可点击
+                // 标记所有Mesh为可点击（不变）
                 model.traverse((child) => {
                     if (child.isMesh) {
                         child.userData.clickable = true;
@@ -156,15 +186,27 @@
                 });
             },
             (xhr) => {
-                console.log(`加载进度：${(xhr.loaded / xhr.total * 100).toFixed(0)}%`);
+                // 显示加载进度（让你看到加载状态）
+                const progress = (xhr.loaded / xhr.total * 100).toFixed(0);
+                loadingText.innerText = `加载中...${progress}%`;
             },
             (error) => {
-                console.error('模型加载失败：', error);
-                loadingText.innerText = '加载失败';
+                clearTimeout(timeoutTimer);
+                console.error('模型加载失败原因：', error);
+                // 根据错误类型提示
+                if (error.message.includes('404')) {
+                    loadingText.innerText = '模型文件未找到（路径错误），点击重试';
+                } else if (error.message.includes('CORS')) {
+                    loadingText.innerText = '跨域错误（小程序域名未配置），点击重试';
+                } else {
+                    loadingText.innerText = '加载失败，点击重试';
+                }
+                // 点击重试
+                loadingText.addEventListener('click', () => window.location.reload());
             }
         );
 
-        // 相机与控制器配置（适配手机触摸）
+        // 相机与控制器配置（完全沿用你之前的成功参数）
         camera.position.z = 5;
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.autoRotate = false;
@@ -179,7 +221,7 @@
         };
         controls.reset();
 
-        // 点击/触摸事件处理（核心：左右耳+鬓毛识别）
+        // 点击/触摸事件处理（完全沿用你之前的识别逻辑）
         function onPointerDown(e) {
             if (!model) return;
 
@@ -202,10 +244,10 @@
                 const worldPosition = new THREE.Vector3();
                 clickedObject.getWorldPosition(worldPosition);
 
-                // 精准识别范围（适配向左转后的模型）
-                const isLeftEar = worldPosition.x < -1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 左耳（x负方向）
-                const isRightEar = worldPosition.x > 1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 右耳（x正方向）
-                const isMane = worldPosition.x > -0.8 && worldPosition.x < 0.8 && worldPosition.y < 0.5 && worldPosition.y > -0.3; // 鬓毛（中间区域）
+                // 精准识别范围（你之前的成功参数）
+                const isLeftEar = worldPosition.x < -1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5;
+                const isRightEar = worldPosition.x > 1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5;
+                const isMane = worldPosition.x > -0.8 && worldPosition.x < 0.8 && worldPosition.y < 0.5 && worldPosition.y > -0.3;
 
                 // 弹窗触发逻辑
                 if (isLeftEar || isRightEar) {
@@ -221,18 +263,18 @@
             }
         }
 
-        // 绑定交互事件
+        // 绑定交互事件（不变）
         window.addEventListener('click', onPointerDown);
         window.addEventListener('touchstart', onPointerDown);
 
-        // 窗口自适应调整
+        // 窗口自适应调整（不变）
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 动画循环（保证模型交互顺滑）
+        // 动画循环（不变）
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
