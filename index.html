@@ -15,7 +15,7 @@
             font-size: 20px;
             z-index: 100;
         }
-        /* 底部文字：左对齐、占满屏幕、手机清晰显示 */
+        /* 底部说明文字保留，弹窗相关样式已移除 */
         #model-desc {
             position: fixed;
             bottom: 40px;
@@ -32,41 +32,8 @@
             margin: 0;
             letter-spacing: 0.5px;
         }
-        /* 顶部弹窗：半透明背景、不挡模型 */
-        .popup-desc {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 99;
-            background: rgba(255, 255, 255, 0.95);
-            color: #000;
-            font-size: 16px;
-            line-height: 1.5;
-            padding: 18px 20px;
-            border-radius: 12px;
-            max-width: 85%;
-            text-align: left;
-            font-family: "Microsoft YaHei", sans-serif;
-            box-shadow: 0 3px 18px rgba(0,0,0,0.15);
-            display: none;
-        }
-        .popup-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 22px;
-            color: #666;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-        }
-        .popup-close:hover {
-            color: #000;
-        }
     </style>
-    <!-- 修改1：替换为微信小程序兼容的国内CDN（字节跳动CDN） -->
+    <!-- 国内稳定CDN（字节跳动），避免拦截 -->
     <script type="importmap">
         {
             "imports": {
@@ -78,19 +45,9 @@
 </head>
 <body>
     <div class="loading">加载中...</div>
-    <!-- 底部左对齐说明文字 -->
+    <!-- 底部说明文字保留 -->
     <div id="model-desc">
         它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
-    </div>
-    <!-- 耳朵点击弹窗（左右耳共用） -->
-    <div class="popup-desc" id="ear-popup">
-        <button class="popup-close">&times;</button>
-        仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
-    </div>
-    <!-- 鬓毛点击弹窗 -->
-    <div class="popup-desc" id="mane-popup">
-        <button class="popup-close">&times;</button>
-        这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
     </div>
 
     <script type="module">
@@ -106,94 +63,85 @@
         renderer.setClearColor(0xffffff);
         document.body.appendChild(renderer.domElement);
 
-        // 光照配置（提升模型质感，便于点击识别）
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(5, 5, 5);
-        scene.add(ambientLight, directionalLight);
+        // 光照配置（增强模型显示，避免黑块）
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
+        directionalLight1.position.set(4, 6, 5);
+        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+        directionalLight2.position.set(-4, -3, -5);
+        scene.add(ambientLight, directionalLight1, directionalLight2);
 
-        // 弹窗元素获取与关闭逻辑
-        const earPopup = document.getElementById('ear-popup');
-        const manePopup = document.getElementById('mane-popup');
-        const closeButtons = document.querySelectorAll('.popup-close');
-
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                earPopup.style.display = 'none';
-                manePopup.style.display = 'none';
-            });
-        });
-
-        // 点击空白处关闭弹窗
-        document.addEventListener('click', (e) => {
-            if (e.target === document.body || e.target === renderer.domElement) {
-                earPopup.style.display = 'none';
-                manePopup.style.display = 'none';
-            }
-        });
-
-        // 模型加载与核心交互逻辑
+        // 模型加载核心逻辑（修复加载中问题）
         const loader = new GLTFLoader();
         const loadingText = document.querySelector('.loading');
         let model = null;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
 
-        // 修改2：双路径重试（先试带空格，失败试无空格，兼容文件名变化）
-        loader.load(
-            './3d%20model.glb', // 带空格的路径（原路径）
-            (gltf) => {
-                model = gltf.scene;
-                model.scale.set(3.5, 3.5, 3.5);
-                model.position.set(0, -0.5, 0);
-                model.rotation.y = -Math.PI / 4; // 向左转45°（最终确定角度）
-                scene.add(model);
-                loadingText.style.display = 'none';
+        // 超时处理（15秒超时提示）
+        const loadTimeout = setTimeout(() => {
+            loadingText.innerText = '加载超时，点击重试';
+            loadingText.style.cursor = 'pointer';
+            loadingText.addEventListener('click', () => {
+                loadingText.innerText = '加载中...';
+                loadingText.style.cursor = 'default';
+                loadModel(); // 重新加载
+            });
+        }, 15000);
 
-                // 标记所有Mesh为可点击
-                model.traverse((child) => {
-                    if (child.isMesh) {
-                        child.userData.clickable = true;
-                    }
-                });
-            },
-            (xhr) => {
-                const progress = (xhr.loaded / xhr.total * 100).toFixed(0);
-                loadingText.innerText = `加载中...${progress}%`;
-                console.log(`加载进度：${progress}%`);
-            },
-            (error) => {
-                console.error('带空格路径加载失败，尝试无空格路径', error);
-                // 重试无空格路径（兼容文件名改为3dmodel.glb的情况）
-                loader.load(
-                    './3dmodel.glb',
-                    (gltf) => {
-                        model = gltf.scene;
-                        model.scale.set(3.5, 3.5, 3.5);
-                        model.position.set(0, -0.5, 0);
-                        model.rotation.y = -Math.PI / 4;
-                        scene.add(model);
-                        loadingText.style.display = 'none';
+        // 模型加载函数（双路径+错误处理）
+        function loadModel() {
+            loader.load(
+                './3d%20model.glb', // 带空格路径
+                (gltf) => {
+                    clearTimeout(loadTimeout);
+                    model = gltf.scene;
+                    model.scale.set(3.5, 3.5, 3.5);
+                    model.position.set(0, -0.5, 0);
+                    model.rotation.y = -Math.PI / 4;
+                    scene.add(model);
+                    loadingText.style.display = 'none';
+                },
+                (xhr) => {
+                    const progress = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    loadingText.innerText = `加载中...${progress}%`;
+                },
+                (error) => {
+                    console.error('带空格路径失败，尝试无空格路径', error);
+                    // 重试无空格路径
+                    loader.load(
+                        './3dmodel.glb',
+                        (gltf) => {
+                            clearTimeout(loadTimeout);
+                            model = gltf.scene;
+                            model.scale.set(3.5, 3.5, 3.5);
+                            model.position.set(0, -0.5, 0);
+                            model.rotation.y = -Math.PI / 4;
+                            scene.add(model);
+                            loadingText.style.display = 'none';
+                        },
+                        (xhr) => {
+                            const progress = (xhr.loaded / xhr.total * 100).toFixed(0);
+                            loadingText.innerText = `加载中...${progress}%`;
+                        },
+                        (err) => {
+                            clearTimeout(loadTimeout);
+                            console.error('模型加载失败', err);
+                            loadingText.innerText = '加载失败，点击重试';
+                            loadingText.style.cursor = 'pointer';
+                            loadingText.addEventListener('click', () => {
+                                loadingText.innerText = '加载中...';
+                                loadingText.style.cursor = 'default';
+                                loadModel();
+                            });
+                        }
+                    );
+                }
+            );
+        }
 
-                        model.traverse((child) => {
-                            if (child.isMesh) {
-                                child.userData.clickable = true;
-                            }
-                        });
-                    },
-                    (xhr) => {
-                        const progress = (xhr.loaded / xhr.total * 100).toFixed(0);
-                        loadingText.innerText = `加载中...${progress}%`;
-                    },
-                    (err) => {
-                        console.error('两个路径都加载失败', err);
-                        loadingText.innerText = '加载失败';
-                    }
-                );
-            }
-        );
+        // 启动加载
+        loadModel();
 
-        // 相机与控制器配置（适配手机触摸）
+        // 相机与控制器（保留旋转缩放功能）
         camera.position.z = 5;
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.autoRotate = false;
@@ -208,60 +156,16 @@
         };
         controls.reset();
 
-        // 点击/触摸事件处理（核心：左右耳+鬓毛识别）
-        function onPointerDown(e) {
-            if (!model) return;
+        // 移除点击弹窗相关代码（已删除射线检测、弹窗逻辑）
 
-            // 坐标转换（兼容手机触摸和电脑鼠标）
-            if (e.type === 'touchstart') {
-                const touch = e.touches[0];
-                mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = - (touch.clientY / window.innerHeight) * 2 + 1;
-            } else {
-                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
-            }
-
-            // 射线检测点击部位
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(model.children, true);
-
-            if (intersects.length > 0) {
-                const clickedObject = intersects[0].object;
-                const worldPosition = new THREE.Vector3();
-                clickedObject.getWorldPosition(worldPosition);
-
-                // 精准识别范围（适配向左转后的模型）
-                const isLeftEar = worldPosition.x < -1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 左耳（x负方向）
-                const isRightEar = worldPosition.x > 1.2 && worldPosition.y > 0.5 && worldPosition.z > -0.5; // 右耳（x正方向）
-                const isMane = worldPosition.x > -0.8 && worldPosition.x < 0.8 && worldPosition.y < 0.5 && worldPosition.y > -0.3; // 鬓毛（中间区域）
-
-                // 弹窗触发逻辑
-                if (isLeftEar || isRightEar) {
-                    earPopup.style.display = 'block';
-                    manePopup.style.display = 'none';
-                } else if (isMane) {
-                    manePopup.style.display = 'block';
-                    earPopup.style.display = 'none';
-                } else {
-                    earPopup.style.display = 'none';
-                    manePopup.style.display = 'none';
-                }
-            }
-        }
-
-        // 绑定交互事件
-        window.addEventListener('click', onPointerDown);
-        window.addEventListener('touchstart', onPointerDown);
-
-        // 窗口自适应调整
+        // 窗口自适应
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 动画循环（保证模型交互顺滑）
+        // 动画循环
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
