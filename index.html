@@ -72,6 +72,7 @@
             margin-top: 20px;
             display: flex;
             gap: 10px;
+            justify-content: center;
         }
         
         .control-btn {
@@ -85,6 +86,28 @@
         
         .control-btn:hover {
             background-color: #f0f0f0;
+        }
+        
+        .part-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .part-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .part-btn:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -102,6 +125,11 @@
             <button class="control-btn" onclick="zoomIn()">放大</button>
             <button class="control-btn" onclick="zoomOut()">缩小</button>
         </div>
+        <div class="part-buttons">
+            <button class="part-btn" onclick="showIntroduction('mane')">鬓毛</button>
+            <button class="part-btn" onclick="showIntroduction('ear')">耳朵</button>
+            <button class="part-btn" onclick="showIntroduction('material')">材质</button>
+        </div>
     </div>
 
     <!-- Three.js 库 -->
@@ -111,6 +139,8 @@
 
     <script>
         let scene, camera, renderer, controls, model;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
         
         function init() {
             // 创建场景
@@ -185,6 +215,9 @@
             
             // 响应窗口大小变化
             window.addEventListener('resize', onWindowResize);
+            
+            // 添加鼠标点击事件
+            window.addEventListener('click', onMouseClick);
         }
         
         function onWindowResize() {
@@ -204,6 +237,82 @@
             renderer.render(scene, camera);
         }
         
+        function onMouseClick(event) {
+            console.log('点击事件触发');
+            
+            // 计算鼠标位置
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            console.log('鼠标位置:', mouse.x, mouse.y);
+            
+            // 更新射线
+            raycaster.setFromCamera(mouse, camera);
+            
+            // 检测交点
+            let intersects = [];
+            if (model) {
+                intersects = raycaster.intersectObjects(model.children, true);
+                console.log('检测到的交点数量:', intersects.length);
+            } else {
+                console.log('模型未加载');
+            }
+            
+            if (intersects.length > 0) {
+                // 获取点击的物体
+                const clickedObject = intersects[0].object;
+                console.log('点击的物体:', clickedObject.name);
+                
+                // 确定点击的部位
+                let part = 'body';
+                
+                // 根据物体位置判断部位
+                const position = clickedObject.getWorldPosition(new THREE.Vector3());
+                console.log('点击位置坐标:', position.x, position.y, position.z);
+                
+                // 鬃毛位置（调整阈值以适应实际模型）
+                if (position.y > 0.2 && Math.abs(position.x) < 0.3) {
+                    part = 'mane';
+                }
+                // 耳朵位置（调整阈值以适应实际模型）
+                else if (position.y > 0.1 && (position.x > 0.2 || position.x < -0.2)) {
+                    part = 'ear';
+                }
+                
+                console.log('判断的部位:', part);
+                
+                // 发送消息给小程序
+                if (typeof wx !== 'undefined' && wx.miniProgram) {
+                    console.log('发送消息给小程序:', part);
+                    wx.miniProgram.postMessage({
+                        data: {
+                            part: part
+                        }
+                    });
+                } else {
+                    console.log('wx对象不可用');
+                }
+                
+                // 直接更新页面上的介绍文本（用于测试）
+                const introElement = document.querySelector('.introduction');
+                if (introElement) {
+                    let introText = '它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。';
+                    
+                    if (part === 'mane') {
+                        introText = '这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。';
+                    } else if (part === 'ear') {
+                        introText = '仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。';
+                    }
+                    
+                    introElement.textContent = introText;
+                    console.log('更新页面文本:', introText);
+                }
+            } else {
+                console.log('未检测到交点');
+            }
+        }
+        
         function resetCamera() {
             camera.position.set(0, 0, 5);
             controls.target.set(0, 0, 0);
@@ -218,6 +327,39 @@
         function zoomOut() {
             camera.position.z *= 1.2;
             controls.update();
+        }
+        
+        // 显示介绍文本
+        function showIntroduction(part) {
+            console.log('按钮被点击:', part);
+            
+            const introElement = document.querySelector('.introduction');
+            if (introElement) {
+                let introText = '它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。';
+                
+                if (part === 'mane') {
+                    introText = '这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。';
+                } else if (part === 'ear') {
+                    introText = '仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的"无声见证者"。今天，就让我们用数字技术，为它补上这道跨越百年的"伤痕"。';
+                } else if (part === 'material') {
+                    introText = '看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。';
+                }
+                
+                introElement.textContent = introText;
+                console.log('更新页面文本:', introText);
+                
+                // 发送消息给小程序
+                if (typeof wx !== 'undefined' && wx.miniProgram) {
+                    console.log('发送消息给小程序:', part);
+                    wx.miniProgram.postMessage({
+                        data: {
+                            part: part
+                        }
+                    });
+                } else {
+                    console.log('wx对象不可用');
+                }
+            }
         }
         
         // 初始化
