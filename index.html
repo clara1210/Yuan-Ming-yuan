@@ -51,6 +51,7 @@ body{
     background:#f5f5f5;
     border-radius:10px;
     line-height:1.6;
+    white-space:pre-line; /* 关键：保留换行 */
 }
 .controls,.part-buttons{
     margin-top:20px;
@@ -86,9 +87,7 @@ body{
 <canvas id="modelCanvas"></canvas>
 </div>
 
-<div class="introduction">
-它不只是一件文物，更是一座‘百年水力钟’！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水。
-</div>
+<div class="introduction" id="introText"></div>
 
 <div class="controls">
 <button class="control-btn" onclick="resetCamera()">重置视角</button>
@@ -117,7 +116,7 @@ function init(){
 
 scene=new THREE.Scene();
 
-/* ✅ 背景图片加载 */
+/* 背景 */
 const textureLoader=new THREE.TextureLoader();
 textureLoader.load('test1.jpg',function(texture){
     texture.encoding=THREE.sRGBEncoding;
@@ -146,10 +145,9 @@ scene.add(dirLight);
 /* 控制器 */
 controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
-controls.dampingFactor=0.05;
 controls.enablePan=false;
 
-/* 加载模型 */
+/* 模型加载 */
 const loader=new THREE.GLTFLoader();
 loader.load('model.glb',function(gltf){
 
@@ -161,8 +159,7 @@ const size=box.getSize(new THREE.Vector3());
 const center=box.getCenter(new THREE.Vector3());
 model.position.sub(center);
 
-const maxSize=Math.max(size.x,size.y,size.z);
-camera.position.z=maxSize*3;
+camera.position.z=Math.max(size.x,size.y,size.z)*3;
 
 controls.target.set(0,0,0);
 controls.update();
@@ -174,7 +171,6 @@ document.getElementById('loading').textContent='模型加载失败';
 });
 
 window.addEventListener('resize',onWindowResize);
-window.addEventListener('click',onMouseClick);
 }
 
 function onWindowResize(){
@@ -190,18 +186,6 @@ controls.update();
 renderer.render(scene,camera);
 }
 
-function onMouseClick(event){
-if(!model)return;
-const rect=renderer.domElement.getBoundingClientRect();
-mouse.x=((event.clientX-rect.left)/rect.width)*2-1;
-mouse.y=-((event.clientY-rect.top)/rect.height)*2+1;
-raycaster.setFromCamera(mouse,camera);
-const intersects=raycaster.intersectObjects(model.children,true);
-if(intersects.length>0){
-showIntroduction('mane');
-}
-}
-
 function resetCamera(){
 camera.position.set(0,0,5);
 controls.target.set(0,0,0);
@@ -212,36 +196,35 @@ function zoomIn(){camera.position.z*=0.8;}
 function zoomOut(){camera.position.z*=1.2;}
 
 function showIntroduction(part){
-const intro=document.querySelector('.introduction');
-let text="它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
-    It is not just a cultural relic, but a century-old water clock!
-As the centerpiece of the Twelve Chinese Zodiac Water Clock at the Haiyan Hall, the Horse Head spouts water specifically at the Wu hour (11:00–13:00).
-The wisdom of water conservancy and timekeeping, a perfect fusion of Chinese and Western ingenuity, is vividly embodied in it.
-";
+const intro=document.getElementById("introText");
+let text=`它不只是一件文物，更是一座“百年水力钟”！
+马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水。
+It is not just a cultural relic, but a century-old water clock!
+As the centerpiece of the Twelve Zodiac Water Clock at Haiyan Hall, the Horse Head spouts water at the Wu hour (11:00–13:00).`;
+
 if(part==='mane'){
-text="这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
-    These lively, curling manes are actually the work of Giuseppe Castiglione! They perfectly blend the realistic delicacy of Western sculpture with the solemn elegance of Chinese bronze craftsmanship. 
-    Every strand and pattern bears the supreme skill of the Qing court workshops, remaining vivid and vibrant even after a hundred years.";
+text=`这组灵动的卷曲鬃毛出自郎世宁之手！
+融合西洋写实与中国青铜工艺。
+These lively curling manes blend Western realism with Chinese bronze craftsmanship.`;
 }
+
 if(part==='ear'){
-text="仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
-    Look closely! This damaged right ear holds a deeply unforgettable history.
-In 1860, during the looting of the Old Summer Palace by Anglo-French forces, it was violently destroyed, becoming a silent witness to the relic’s century of displacement.
-Today, let us use digital technology to mend this century-old scar.";
+text=`残缺的右耳见证1860年历史。
+The damaged right ear witnessed the 1860 looting of Yuanmingyuan.`;
 }
+
 if(part==='material'){
-text="看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。
-    The seemingly simple Horse Head hides an extraordinary material secret.
-Forged from 98% high-purity copper, with trace amounts of lead, iron, and zinc, its composition matches exactly the formula recorded in the archives of the Qianlong Imperial Household Department.
-This is precisely why it has survived centuries of wind and rain and remained intact to this day.";
+text=`马首由98%高纯度红铜铸造。
+Forged from 98% high-purity copper.`;
 }
+
 intro.textContent=text;
 }
 
 init();
 animate();
+showIntroduction(); // 默认文字
 </script>
 
 </body>
 </html>
-
