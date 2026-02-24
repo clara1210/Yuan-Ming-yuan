@@ -2,12 +2,18 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>圆明园构件3D展示</title>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family: Arial, sans-serif; background:#f0f0f0;}
+body{
+    font-family: Arial, sans-serif;
+    background:#f0f0f0;
+}
 button{cursor:pointer;}
+
+/* 选择页 */
 #selectPage{
     min-height:100vh;
     display:flex;
@@ -16,6 +22,8 @@ button{cursor:pointer;}
     justify-content:center;
     gap:30px;
 }
+
+/* 选择按钮 */
 .select-btn{
     padding:20px 60px;
     font-size:24px;
@@ -27,6 +35,8 @@ button{cursor:pointer;}
     transition:0.3s;
 }
 .select-btn:hover{background:#d4af37;}
+
+/* 展示页 */
 #viewerPage{
     display:none;
     min-height:100vh;
@@ -35,9 +45,11 @@ button{cursor:pointer;}
     padding:20px;
     position:relative;
 }
+
+/* ⭐⭐⭐ 修复手机端返回按钮 ⭐⭐⭐ */
 #backBtn{
-    position:absolute;
-    top:20px;
+    position:fixed; /* 改为固定 */
+    top:calc(20px + env(safe-area-inset-top));
     left:20px;
     padding:10px 20px;
     font-size:16px;
@@ -46,8 +58,11 @@ button{cursor:pointer;}
     background:#b8860b;
     color:#fff;
     font-weight:bold;
+    z-index:9999; /* 防止被遮挡 */
 }
 #backBtn:hover{background:#d4af37;}
+
+/* 模型容器 */
 .model-container{
     width:100%;
     max-width:900px;
@@ -58,7 +73,20 @@ button{cursor:pointer;}
     margin-bottom:20px;
     box-shadow:0 20px 40px rgba(0,0,0,0.2);
 }
-#modelCanvas{width:100%; height:100%; display:block;}
+
+/* ⭐手机优化 */
+@media(max-width:768px){
+    .model-container{
+        height:55vh;
+    }
+}
+
+#modelCanvas{
+    width:100%;
+    height:100%;
+    display:block;
+}
+
 .loading{
     position:absolute;
     top:50%;
@@ -68,6 +96,7 @@ button{cursor:pointer;}
     color:#666;
     z-index:10;
 }
+
 .introduction{
     width:100%;
     max-width:900px;
@@ -83,18 +112,26 @@ button{cursor:pointer;}
     transition:opacity 0.6s ease;
 }
 .introduction.show{opacity:1;}
+
 .controls,.part-buttons{
     margin-top:20px;
     display:flex;
     gap:10px;
     justify-content:center;
+    flex-wrap:wrap; /* 手机自动换行 */
 }
+
 .control-btn,.part-btn{
     padding:8px 16px;
     border-radius:4px;
     cursor:pointer;
 }
-.control-btn{border:none;background:#ffffff;}
+
+.control-btn{
+    border:none;
+    background:#ffffff;
+}
+
 .part-btn{
     background:#b8860b;
     border:none;
@@ -102,6 +139,7 @@ button{cursor:pointer;}
     font-weight:bold;
 }
 .part-btn:hover{background:#d4af37;}
+
 </style>
 </head>
 <body>
@@ -130,10 +168,11 @@ button{cursor:pointer;}
     <div class="part-buttons" id="partButtons"></div>
 </div>
 
+<!-- 下面JS完全不动 -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
-
+    
 <script>
 let scene, camera, renderer, controls, model;
 let autoRotate = true;
@@ -332,3 +371,4 @@ Every contour and curve demonstrates the top craftsmanship of the Qing Dynasty I
 </script>
 </body>
 </html>
+
