@@ -36,7 +36,22 @@ button{cursor:pointer;}
     flex-direction:column;
     align-items:center;
     padding:20px;
+    position:relative;
 }
+#backBtn{
+    position:absolute;
+    top:20px;
+    left:20px;
+    padding:10px 20px;
+    font-size:16px;
+    border:none;
+    border-radius:6px;
+    background:#b8860b;
+    color:#fff;
+    font-weight:bold;
+}
+#backBtn:hover{background:#d4af37;}
+
 .model-container{
     width:100%;
     max-width:900px;
@@ -103,6 +118,8 @@ button{cursor:pointer;}
 
 <!-- 3D 展示页面 -->
 <div id="viewerPage" class="container">
+    <button id="backBtn" onclick="returnToSelect()">返回选择</button>
+
     <div class="model-container">
         <div class="loading" id="loading">加载中...</div>
         <canvas id="modelCanvas"></canvas>
@@ -137,6 +154,15 @@ function startViewer(type){
     init();
     animate();
     showIntroduction();
+}
+
+// 返回选择页面
+function returnToSelect(){
+    document.getElementById('viewerPage').style.display='none';
+    document.getElementById('selectPage').style.display='flex';
+    // 清空场景
+    if(model) scene.remove(model);
+    model=null;
 }
 
 // 根据模型类型生成按钮
@@ -211,7 +237,6 @@ function init(){
     controls.addEventListener('start',()=>autoRotate=false);
     controls.addEventListener('end',()=>autoRotate=true);
 
-    // 默认加载对应模型
     if(currentModel==='horse') loadModel('horse model.glb');
     else if(currentModel==='tiger') loadModel('tiger.glb');
 
