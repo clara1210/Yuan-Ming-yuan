@@ -7,10 +7,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family: Arial, sans-serif; background:#f0f0f0;}
-button{cursor:pointer; transition:0.3s;}
-button:hover{transform:scale(1.05);}
-
-/* 选择页面 */
+button{cursor:pointer;}
+/* 选择页面样式 */
 #selectPage{
     min-height:100vh;
     display:flex;
@@ -18,7 +16,6 @@ button:hover{transform:scale(1.05);}
     align-items:center;
     justify-content:center;
     gap:30px;
-    transition:opacity 0.5s;
 }
 .select-btn{
     padding:20px 60px;
@@ -28,10 +25,11 @@ button:hover{transform:scale(1.05);}
     background:#b8860b;
     color:#fff;
     font-weight:bold;
+    transition:0.3s;
 }
 .select-btn:hover{background:#d4af37;}
 
-/* 3D 展示页面 */
+/* 3D 展示页面样式 */
 #viewerPage{
     display:none;
     min-height:100vh;
@@ -39,7 +37,6 @@ button:hover{transform:scale(1.05);}
     align-items:center;
     padding:20px;
     position:relative;
-    transition:opacity 0.5s;
 }
 #backBtn{
     position:absolute;
@@ -66,30 +63,15 @@ button:hover{transform:scale(1.05);}
     box-shadow:0 30px 60px rgba(0,0,0,0.3);
 }
 #modelCanvas{width:100%; height:100%; display:block;}
-
 .loading{
     position:absolute;
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    font-size:16px;
+    font-size:18px;
     color:#666;
     z-index:10;
 }
-#loadingBarContainer{
-    width:200px;
-    height:10px;
-    background:#ccc;
-    border-radius:5px;
-    overflow:hidden;
-    margin-top:5px;
-}
-#loadingBar{
-    width:0%;
-    height:100%;
-    background:#b8860b;
-}
-
 .introduction{
     width:100%;
     max-width:900px;
@@ -105,7 +87,6 @@ button:hover{transform:scale(1.05);}
     transition:opacity 0.6s ease;
 }
 .introduction.show{opacity:1;}
-
 .controls,.part-buttons{
     margin-top:20px;
     display:flex;
@@ -140,12 +121,7 @@ button:hover{transform:scale(1.05);}
     <button id="backBtn" onclick="returnToSelect()">返回选择</button>
 
     <div class="model-container">
-        <div class="loading" id="loading">
-            <div>加载中...</div>
-            <div id="loadingBarContainer">
-                <div id="loadingBar"></div>
-            </div>
-        </div>
+        <div class="loading" id="loading">加载中...</div>
         <canvas id="modelCanvas"></canvas>
     </div>
 
@@ -155,13 +131,6 @@ button:hover{transform:scale(1.05);}
         <button class="control-btn" onclick="resetCamera()">重置视角</button>
         <button class="control-btn" onclick="zoomIn()">放大</button>
         <button class="control-btn" onclick="zoomOut()">缩小</button>
-        <button class="control-btn" onclick="toggleAutoRotate()">自动旋转开关</button>
-        <button class="control-btn" onclick="setCameraView('front')">正面</button>
-        <button class="control-btn" onclick="setCameraView('side')">侧面</button>
-        <button class="control-btn" onclick="setCameraView('top')">俯视</button>
-        <button class="control-btn" onclick="changeLighting('default')">默认光</button>
-        <button class="control-btn" onclick="changeLighting('warm')">暖光</button>
-        <button class="control-btn" onclick="changeLighting('cold')">冷光</button>
     </div>
 
     <div class="part-buttons" id="partButtons"></div>
@@ -176,49 +145,26 @@ let scene, camera, renderer, controls, model;
 let autoRotate = true;
 let currentModel = ''; // horse 或 tiger
 
-// 页面切换
-function fadeOut(el, callback){
-    el.style.opacity = 1;
-    const fade = setInterval(()=>{
-        el.style.opacity -= 0.05;
-        if(el.style.opacity <=0){
-            clearInterval(fade);
-            el.style.display='none';
-            if(callback) callback();
-        }
-    },20);
-}
-function fadeIn(el){
-    el.style.display='flex';
-    el.style.opacity = 0;
-    const fade = setInterval(()=>{
-        el.style.opacity = Math.min(parseFloat(el.style.opacity)+0.05,1);
-        if(el.style.opacity>=1) clearInterval(fade);
-    },20);
-}
-
 // 点击选择按钮
 function startViewer(type){
     currentModel = type;
-    fadeOut(document.getElementById('selectPage'), ()=>{
-        fadeIn(document.getElementById('viewerPage'));
-        setupPartButtons();
-        init();
-        animate();
-        showIntroduction();
-    });
+    document.getElementById('selectPage').style.display='none';
+    document.getElementById('viewerPage').style.display='flex';
+    setupPartButtons();
+    init();
+    animate();
+    showIntroduction();
 }
 
 // 返回选择页面
 function returnToSelect(){
-    fadeOut(document.getElementById('viewerPage'), ()=>{
-        fadeIn(document.getElementById('selectPage'));
-        if(model) scene.remove(model);
-        model=null;
-    });
+    document.getElementById('viewerPage').style.display='none';
+    document.getElementById('selectPage').style.display='flex';
+    if(model) scene.remove(model);
+    model=null;
 }
 
-// 部件按钮
+// 生成部位按钮
 function setupPartButtons(){
     const container = document.getElementById('partButtons');
     container.innerHTML='';
@@ -241,10 +187,11 @@ function setupPartButtons(){
     }
 }
 
-// Three.js 初始化
+// 初始化 Three.js 场景
 function init(){
     scene = new THREE.Scene();
 
+    // 背景渐变
     const canvas = document.createElement('canvas');
     canvas.width=2; canvas.height=512;
     const ctx = canvas.getContext('2d');
@@ -265,7 +212,16 @@ function init(){
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    addLighting();
+    const ambientLight = new THREE.AmbientLight(0xffffff,0.5);
+    scene.add(ambientLight);
+
+    const spotLight = new THREE.SpotLight(0xffffff,1);
+    spotLight.position.set(5,10,5);
+    spotLight.castShadow = true;
+    spotLight.shadow.mapSize.width = 2048;
+    spotLight.shadow.mapSize.height = 2048;
+    spotLight.angle = Math.PI/6;
+    scene.add(spotLight);
 
     const groundGeo = new THREE.PlaneGeometry(20,20);
     const groundMat = new THREE.ShadowMaterial({opacity:0.3});
@@ -281,76 +237,48 @@ function init(){
     controls.addEventListener('start',()=>autoRotate=false);
     controls.addEventListener('end',()=>autoRotate=true);
 
-    if(currentModel==='horse') loadModel('horse model.glb');
-    else if(currentModel==='tiger') loadModel('tiger.glb');
+    // 默认加载修复后的模型
+    if(currentModel==='horse') loadModel('horse.glb', 3); // 放大三倍
+    else if(currentModel==='tiger') loadModel('tiger.glb', 3);
 
     window.addEventListener('resize', onWindowResize);
 }
 
-// 光照控制
-function addLighting(type='default'){
-    scene.children.filter(obj=>obj.isLight).forEach(obj=>scene.remove(obj));
-    let light = new THREE.DirectionalLight(0xffffff,1);
-    if(type==='warm') light.color = new THREE.Color(0xffddaa);
-    if(type==='cold') light.color = new THREE.Color(0xaaffff);
-    light.position.set(5,10,5);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0xffffff,0.5));
-}
-function changeLighting(type){ addLighting(type); }
-
-// 加载模型 + 进度条
-function loadModel(url){
+// 加载模型
+function loadModel(url, scale=1){
     const loader = new THREE.GLTFLoader();
-    const loadingBar = document.getElementById('loadingBar');
     document.getElementById('loading').style.display='block';
+    loader.load(url,function(gltf){
+        if(model) scene.remove(model);
+        model = gltf.scene;
+        model.traverse(obj=>{
+            if(obj.isMesh){ obj.castShadow=true; obj.receiveShadow=false; }
+        });
+        // 放大模型
+        model.scale.set(scale, scale, scale);
 
-    loader.load(url,
-        function(gltf){
-            if(model) scene.remove(model);
-            model = gltf.scene;
-            model.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=false;}});
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            model.position.sub(center);
-            model.traverse(obj=>{if(obj.material)obj.material.transparent=true; obj.material.opacity=0;});
-            scene.add(model);
-
-            // 淡入动画
-            let opacity = 0;
-            const fadeIn = setInterval(()=>{
-                opacity += 0.05;
-                model.traverse(obj=>{if(obj.material)obj.material.opacity=opacity;});
-                if(opacity>=1) clearInterval(fadeIn);
-            },30);
-
-            document.getElementById('loading').style.display='none';
-        },
-        function(xhr){
-            const percent = (xhr.loaded / xhr.total)*100;
-            loadingBar.style.width = percent+'%';
-        },
-        function(error){ alert('模型加载失败'); console.error(error);}
-    );
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center);
+        scene.add(model);
+        document.getElementById('loading').style.display='none';
+    }, undefined, function(error){
+        console.error('模型加载失败:', url, error);
+        document.getElementById('loading').textContent='模型加载失败，请检查文件';
+    });
 }
 
-// 切换模型（修复前/后）
-function loadOldModel(){ transitionModel(currentModel==='horse'?'horse model.glb':'tiger model.glb'); }
-function loadNewModel(){ transitionModel(currentModel==='horse'?'horse.glb':'tiger.glb'); }
+// 加载旧/新模型
+function loadOldModel(){
+    if(currentModel==='horse') loadModel('horse model.glb', 3);
+    else if(currentModel==='tiger') loadModel('tiger model.glb', 3);
+    showIntroduction();
+}
 
-function transitionModel(newUrl){
-    if(!model) return loadModel(newUrl);
-    let opacity = 1;
-    const fadeOut = setInterval(()=>{
-        opacity -= 0.05;
-        model.traverse(obj=>{if(obj.material)obj.material.opacity=opacity;});
-        if(opacity<=0){
-            clearInterval(fadeOut);
-            scene.remove(model);
-            loadModel(newUrl);
-            showIntroduction();
-        }
-    },30);
+function loadNewModel(){
+    if(currentModel==='horse') loadModel('horse.glb', 3);
+    else if(currentModel==='tiger') loadModel('tiger.glb', 3);
+    showIntroduction();
 }
 
 // 动画循环
@@ -373,16 +301,8 @@ function onWindowResize(){
 function resetCamera(){camera.position.set(0,1,6); controls.target.set(0,0,0); controls.update();}
 function zoomIn(){camera.position.z *=0.85;}
 function zoomOut(){camera.position.z *=1.15;}
-function toggleAutoRotate(){autoRotate = !autoRotate; alert('自动旋转 '+(autoRotate?'开启':'关闭'));}
-function setCameraView(view){
-    if(view==='front') camera.position.set(0,1,6);
-    if(view==='side') camera.position.set(6,1,0);
-    if(view==='top') camera.position.set(0,10,0);
-    controls.target.set(0,0,0);
-    controls.update();
-}
 
-// 简介文字打字机效果（保持原文字不变）
+// 显示简介
 function showIntroduction(part){
     const intro = document.getElementById('introText');
     intro.classList.remove('show');
@@ -410,24 +330,19 @@ The Tiger corresponds to the Yin hour (3:00–5:00), the time when dawn approach
 The Tiger Head automatically spouts water at every Yin hour, and at noon, it sprays in unison with the other eleven animal heads.
 This is an ingenious design by the ancient Chinese that integrates zodiac culture, timekeeping culture, and water conservancy technology.`;
         if(part==='forehead') text=`虎首额头特意铸有清晰的 “王” 字纹路 ，这是中国文化独有的艺术表达 —— 虎为百兽之王，“王” 字既是虎的标志，也象征威严、正气与守护，是中式图腾与西方雕塑完美融合的巧思。
-The forehead of the Tiger Head is deliberately inscribed with the character "王", unique to Chinese culture — Tiger, as the king of beasts, the "王" symbolizes authority, righteousness, and protection, a clever fusion of Chinese totem and Western sculpture.`;
-        if(part==='eyes') text=`虎首的眼神犀利如炬，每一处眼角雕刻都体现了清代造办处匠人的极致工艺——逼真、灵动、威猛，让观者仿佛能感受到虎的呼吸与生机。
-The eyes of the Tiger Head are sharp like a torch. Every carving detail reflects the supreme craftsmanship of Qing dynasty artisans—realistic, lively, and powerful, giving viewers a sense of the tiger's breath and vitality.`;
-        if(part==='nose') text=`虎首的鼻部与面部肌肉线条流畅且细腻，结合铜材的光泽，形成强烈的立体感和动感，体现出古代工匠对动物解剖结构的深刻理解与艺术呈现。
-The nose and facial muscle lines of the Tiger Head are smooth and delicate. Combined with the copper's luster, they create a strong sense of three-dimensionality and motion, reflecting ancient craftsmen's profound understanding of animal anatomy and artistic expression.`;
+The forehead of the Tiger Head is specially cast with a distinct Chinese character "王" (wáng, meaning "king") pattern—a unique artistic expression in Chinese culture.
+As the king of all beasts, the tiger bears the character "王" as its symbol. It represents dignity, righteousness, and protection, embodying the ingenious fusion of Chinese totem art and Western sculpture.`;
+        if(part==='eyes') text=`虎首双目圆睁、目光锐利有神，不怒自威。在中国文化里，虎眼象征勇气、镇宅、辟邪，匠师用极简线条，就把猛虎的精气神完美定格。
+The Tiger Head has wide-open, sharp and vivid eyes, exuding awe without anger.
+In Chinese culture, tiger eyes symbolize courage, home protection, and warding off evil spirits.
+With minimal lines, the craftsmen perfectly captured the spirit and vitality of the fierce tiger.`;
+        if(part==='nose') text=`虎首鼻梁挺括、面部肌肉饱满有力，既遵循西方解剖学的真实结构，又符合东方审美里的雄浑大气，每一处起伏都体现清代宫廷造办处的顶级水准。
+The Tiger Head features a straight, prominent nose bridge and full, powerful facial muscles.
+It follows the realistic anatomical structure of Western sculpture while conforming to the grand, robust aesthetic of the East.
+Every contour and curve demonstrates the top craftsmanship of the Qing Dynasty Imperial Workshop.`;
     }
 
-    intro.textContent='';
-    intro.classList.add('show');
-    let i=0;
-    function typeWriter(){
-        if(i<text.length){
-            intro.textContent += text.charAt(i);
-            i++;
-            setTimeout(typeWriter,15);
-        }
-    }
-    typeWriter();
+    setTimeout(()=>{intro.textContent=text; intro.classList.add('show');},200);
 }
 </script>
 </body>
