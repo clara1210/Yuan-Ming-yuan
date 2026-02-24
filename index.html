@@ -164,7 +164,7 @@ function returnToSelect(){
     model=null;
 }
 
-// 生成部位按钮
+// 根据模型类型生成按钮
 function setupPartButtons(){
     const container = document.getElementById('partButtons');
     container.innerHTML='';
@@ -191,7 +191,6 @@ function setupPartButtons(){
 function init(){
     scene = new THREE.Scene();
 
-    // 背景渐变
     const canvas = document.createElement('canvas');
     canvas.width=2; canvas.height=512;
     const ctx = canvas.getContext('2d');
@@ -237,15 +236,14 @@ function init(){
     controls.addEventListener('start',()=>autoRotate=false);
     controls.addEventListener('end',()=>autoRotate=true);
 
-    // 默认加载修复后的模型
-    if(currentModel==='horse') loadModel('horse.glb', 3); // 放大三倍
-    else if(currentModel==='tiger') loadModel('tiger.glb', 3);
+    if(currentModel==='horse') loadModel('horse model.glb',0.5);
+    else if(currentModel==='tiger') loadModel('tiger.glb',0.5);
 
     window.addEventListener('resize', onWindowResize);
 }
 
 // 加载模型
-function loadModel(url, scale=1){
+function loadModel(url, scale=0.5){
     const loader = new THREE.GLTFLoader();
     document.getElementById('loading').style.display='block';
     loader.load(url,function(gltf){
@@ -254,30 +252,24 @@ function loadModel(url, scale=1){
         model.traverse(obj=>{
             if(obj.isMesh){ obj.castShadow=true; obj.receiveShadow=false; }
         });
-        // 放大模型
-        model.scale.set(scale, scale, scale);
-
+        model.scale.set(scale,scale,scale); // 设置缩放
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         model.position.sub(center);
         scene.add(model);
         document.getElementById('loading').style.display='none';
-    }, undefined, function(error){
-        console.error('模型加载失败:', url, error);
-        document.getElementById('loading').textContent='模型加载失败，请检查文件';
     });
 }
 
 // 加载旧/新模型
 function loadOldModel(){
-    if(currentModel==='horse') loadModel('horse model.glb', 3);
-    else if(currentModel==='tiger') loadModel('tiger model.glb', 3);
+    if(currentModel==='horse') loadModel('horse model.glb',0.5);
+    else if(currentModel==='tiger') loadModel('tiger model.glb',0.5);
     showIntroduction();
 }
-
 function loadNewModel(){
-    if(currentModel==='horse') loadModel('horse.glb', 3);
-    else if(currentModel==='tiger') loadModel('tiger.glb', 3);
+    if(currentModel==='horse') loadModel('horse.glb',0.5);
+    else if(currentModel==='tiger') loadModel('tiger.glb',0.5);
     showIntroduction();
 }
 
