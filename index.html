@@ -104,6 +104,7 @@ body{
 <button class="part-btn" onclick="showIntroduction('ear')">耳朵</button>
 <button class="part-btn" onclick="showIntroduction('material')">材质</button>
 <button class="part-btn" onclick="loadOldModel()">修复前的马首</button>
+<button class="part-btn" onclick="loadNewModel()">修复后的马首</button>
 </div>
 
 </div>
@@ -200,10 +201,16 @@ function loadModel(url){
     });
 }
 
-// 点击“修复前的马首”按钮时调用
+// 点击“修复前的马首”按钮
 function loadOldModel(){
     loadModel('horse model.glb');
-    showIntroduction(); // 可以保持原有简介
+    showIntroduction(); // 保持原有简介
+}
+
+// 点击“修复后的马首”按钮
+function loadNewModel(){
+    loadModel('model.glb');
+    showIntroduction(); // 保持原有简介
 }
 
 // 动画循环
