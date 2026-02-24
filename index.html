@@ -56,7 +56,7 @@ button{cursor:pointer;}
     overflow:hidden;
     position:relative;
     margin-bottom:20px;
-    box-shadow:0 30px 60px rgba(0,0,0,0.3);
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
 }
 #modelCanvas{width:100%; height:100%; display:block;}
 .loading{
@@ -138,7 +138,7 @@ button{cursor:pointer;}
 let scene, camera, renderer, controls, model;
 let autoRotate = true;
 let currentModel = ''; 
-let modelScale = 1; // 用于不同模型缩放
+let modelScale = 1; 
 
 function startViewer(type){
     currentModel = type;
@@ -183,33 +183,23 @@ function setupPartButtons(){
 
 function init(){
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x1a1a2e,0.05);
-
-    const canvas = document.createElement('canvas');
-    canvas.width=2; canvas.height=512;
-    const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0,0,0,512);
-    gradient.addColorStop(0,'#1a1a2e');
-    gradient.addColorStop(0.5,'#222244');
-    gradient.addColorStop(1,'#1a1a2e');
-    ctx.fillStyle=gradient;
-    ctx.fillRect(0,0,2,512);
-    scene.background = new THREE.CanvasTexture(canvas);
+    scene.background = new THREE.Color(0xdddddd); // 浅灰背景
+    scene.fog = new THREE.Fog(0xdddddd,10,50); // 柔和雾感
 
     camera = new THREE.PerspectiveCamera(60,1,0.1,1000);
     camera.position.set(0,1,6);
 
     const container = document.querySelector('.model-container');
-    renderer = new THREE.WebGLRenderer({canvas: document.getElementById('modelCanvas'), antialias:true});
+    renderer = new THREE.WebGLRenderer({canvas: document.getElementById('modelCanvas'), antialias:true, alpha:true});
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 柔和阴影
 
-    const ambientLight = new THREE.AmbientLight(0xffffff,0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff,0.6);
     scene.add(ambientLight);
 
-    const spotLight = new THREE.SpotLight(0xffffff,1);
+    const spotLight = new THREE.SpotLight(0xffffff,0.8);
     spotLight.position.set(5,10,5);
     spotLight.castShadow = true;
     spotLight.shadow.mapSize.width = 2048;
@@ -217,16 +207,8 @@ function init(){
     spotLight.angle = Math.PI/6;
     scene.add(spotLight);
 
-    let lightAngle = 0;
-    function animateLight(){
-        lightAngle += 0.002;
-        spotLight.position.x = 10 * Math.sin(lightAngle);
-        spotLight.position.z = 10 * Math.cos(lightAngle);
-    }
-    window.animateLight = animateLight;
-
     const groundGeo = new THREE.PlaneGeometry(20,20);
-    const groundMat = new THREE.ShadowMaterial({opacity:0.3});
+    const groundMat = new THREE.ShadowMaterial({opacity:0.2});
     const ground = new THREE.Mesh(groundGeo,groundMat);
     ground.rotation.x=-Math.PI/2;
     ground.position.y=-1.5;
@@ -255,15 +237,13 @@ function loadModel(url){
             if(obj.isMesh){ obj.castShadow=true; obj.receiveShadow=false; }
         });
 
-        // 模型缩放
         const box = new THREE.Box3().setFromObject(model);
         const size = box.getSize(new THREE.Vector3()).length();
-        const scale = modelScale / size; // 根据当前模型类型缩放
-        model.scale.set(0.01,0.01,0.01); // 初始很小
+        const scale = modelScale / size;
+        model.scale.set(0.01,0.01,0.01); 
         scene.add(model);
         document.getElementById('loading').style.display='none';
 
-        // 模型平滑缩放动画
         let currentScale=0.01;
         function scaleUp(){
             if(currentScale < scale){
@@ -296,7 +276,6 @@ function animate(){
     requestAnimationFrame(animate);
     if(model && autoRotate) model.rotation.y += 0.003;
     controls.update();
-    window.animateLight(); // 动态灯光
     renderer.render(scene,camera);
 }
 
