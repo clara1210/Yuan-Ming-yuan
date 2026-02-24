@@ -103,6 +103,7 @@ body{
 <button class="part-btn" onclick="showIntroduction('mane')">鬓毛</button>
 <button class="part-btn" onclick="showIntroduction('ear')">耳朵</button>
 <button class="part-btn" onclick="showIntroduction('material')">材质</button>
+<button class="part-btn" onclick="loadOldModel()">修复前的马首</button>
 </div>
 
 </div>
@@ -115,6 +116,7 @@ body{
 let scene, camera, renderer, controls, model;
 let autoRotate = true;
 
+// 初始化场景
 function init(){
     scene = new THREE.Scene();
 
@@ -169,9 +171,20 @@ function init(){
     controls.addEventListener('start',()=>autoRotate=false);
     controls.addEventListener('end',()=>autoRotate=true);
 
-    // 加载模型
+    // 默认加载修复后的模型
+    loadModel('model.glb');
+
+    window.addEventListener('resize', onWindowResize);
+}
+
+// 加载模型函数
+function loadModel(url){
     const loader = new THREE.GLTFLoader();
-    loader.load('model.glb', function(gltf){
+    document.getElementById('loading').style.display = 'block';
+    loader.load(url, function(gltf){
+        // 删除旧模型
+        if(model) scene.remove(model);
+
         model = gltf.scene;
         model.traverse(obj=>{
             if(obj.isMesh){
@@ -185,10 +198,15 @@ function init(){
         scene.add(model);
         document.getElementById('loading').style.display='none';
     });
-
-    window.addEventListener('resize', onWindowResize);
 }
 
+// 点击“修复前的马首”按钮时调用
+function loadOldModel(){
+    loadModel('horse model.glb');
+    showIntroduction(); // 可以保持原有简介
+}
+
+// 动画循环
 function animate(){
     requestAnimationFrame(animate);
     if(model && autoRotate) model.rotation.y += 0.003;
@@ -196,6 +214,7 @@ function animate(){
     renderer.render(scene,camera);
 }
 
+// 窗口自适应
 function onWindowResize(){
     const container = document.querySelector('.model-container');
     camera.aspect = container.clientWidth / container.clientHeight;
@@ -203,6 +222,7 @@ function onWindowResize(){
     renderer.setSize(container.clientWidth, container.clientHeight);
 }
 
+// 相机控制
 function resetCamera(){
     camera.position.set(0,1,6);
     controls.target.set(0,0,0);
@@ -211,6 +231,7 @@ function resetCamera(){
 function zoomIn(){camera.position.z *= 0.85;}
 function zoomOut(){camera.position.z *= 1.15;}
 
+// 简介显示
 function showIntroduction(part){
     const intro = document.getElementById('introText');
     intro.classList.remove('show');
