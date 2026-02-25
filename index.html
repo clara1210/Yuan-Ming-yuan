@@ -211,6 +211,9 @@ let currentModel='';
 let modelScale=1;
 const originalMaterials = new Map();
 
+// 朗读开关
+let speakOn=false;
+
 function toggleLanguage(){
 currentLang=currentLang==='zh'?'en':'zh';
 document.getElementById('langBtn').innerText=currentLang==='zh'?'中文':'English';
@@ -335,6 +338,7 @@ loader.load(url,function(gltf){
 if(model) scene.remove(model);
 model = gltf.scene;
 model.traverse(obj=>{if(obj.isMesh){ obj.castShadow=true; obj.receiveShadow=false;}});
+
 const box = new THREE.Box3().setFromObject(model);
 const size = box.getSize(new THREE.Vector3()).length();
 const scale = modelScale / size;
@@ -342,7 +346,7 @@ model.scale.set(0.01,0.01,0.01);
 scene.add(model);
 document.getElementById('loading').style.display='none';
 let currentScale=0.01;
-function scaleUp(){if(currentScale < scale){currentScale += 0.02; model.scale.set(currentScale,currentScale,currentScale); requestAnimationFrame(scaleUp);} else {model.scale.set(scale,scale,scale);}}
+function scaleUp(){if(currentScale < scale){currentScale += 0.02; model.scale.set(currentScale,currentScale,currentScale); requestAnimationFrame(scaleUp);} else {model.scale.set(scale,scale,scale);} }
 scaleUp();
 const center = box.getCenter(new THREE.Vector3()); model.position.sub(center);
 });
@@ -370,7 +374,7 @@ The wisdom of water conservancy and timekeeping, a perfect fusion of Chinese and
 if(part==='mane') text=`这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
 These lively, curling manes are actually the work of Giuseppe Castiglione! They perfectly blend the realistic delicacy of Western sculpture with the solemn elegance of Chinese bronze craftsmanship. 
 Every strand and pattern bears the supreme skill of the Qing court workshops, remaining vivid and vibrant even after a hundred years.`;
-if(part==='ear') text=`仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
+if(part==='ear') text=`仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。 
 Look closely! This damaged right ear holds a deeply unforgettable history.
 In 1860, during the looting of the Old Summer Palace by Anglo-French forces, it was violently destroyed, becoming a silent witness to the relic’s century of displacement.
 Today, let us use digital technology to mend this century-old scar.`;
@@ -395,16 +399,25 @@ The Tiger Head features a straight, prominent nose bridge and full, powerful fac
 It follows the realistic anatomical structure of Western sculpture while conforming to the grand, robust aesthetic of the East.
 Every contour and curve demonstrates the top craftsmanship of the Qing Dynasty Imperial Workshop.`; 
 }
-setTimeout(()=>{intro.textContent=text; intro.classList.add('show');},200);
+intro.textContent=text;
+intro.classList.add('show');
+
+// 如果朗读开启，朗读当前语言文本
+if(speakOn){
+speakText(currentLang==='zh'?text.split('\n')[0]:text.split('\n')[3]);
+}
 }
 
-// 音乐控制
+// 音乐和朗读控制
 const bgm=document.getElementById("bgm");
 const musicBtn=document.getElementById("musicBtn");
-let musicOn=false;
-musicBtn.onclick=function(){if(!musicOn){bgm.play();musicBtn.innerText="🔊";} else{bgm.pause();musicBtn.innerText="🎵";} musicOn=!musicOn;}
+musicBtn.onclick=function(){
+speakOn=!speakOn;
+if(speakOn){ bgm.play(); musicBtn.innerText="🔊"; showIntroduction(); }
+else{ bgm.pause(); musicBtn.innerText="🎵"; speechSynthesis.cancel(); }
+}
 
-// 语音朗读
+// 语音朗读函数
 function speakText(text){
 const utter=new SpeechSynthesisUtterance(text);
 utter.lang=currentLang==='zh'?'zh-CN':'en-US';
@@ -412,38 +425,22 @@ speechSynthesis.cancel();
 speechSynthesis.speak(utter);
 }
 
-// 重写 showIntroduction 增加语音
-const originalShowIntroduction=showIntroduction;
-showIntroduction=function(part){
-originalShowIntroduction(part);
-setTimeout(()=>{
-const intro=document.getElementById('introText');
-if(intro.textContent){speakText(intro.textContent.split('\n')[0]);}
-},500);
-}
-
-// 局部高亮函数
+// 局部高亮
 function highlightPart(partName){
 if(!model) return;
-model.traverse(obj=>{
-if(obj.isMesh && originalMaterials.has(obj.name)){obj.material = originalMaterials.get(obj.name);}
-});
+model.traverse(obj=>{if(obj.isMesh && originalMaterials.has(obj.name)){obj.material = originalMaterials.get(obj.name);}});
 const highlightMeshes=[];
 model.traverse(obj=>{
 if(obj.isMesh && obj.name.toLowerCase().includes(partName)){
-if(!originalMaterials.has(obj.name)) originalMaterials.set(obj.name,obj.material);
+if(!originalMaterials.has(obj.name)) originalMaterials.set(obj.material);
 obj.material = obj.material.clone();
 highlightMeshes.push(obj.material);
 }
 });
-if(highlightMeshes.length === 0) return;
-let intensity = 0;
-let increasing = true;
+if(highlightMeshes.length===0) return;
+let intensity=0; let increasing=true;
 function animateHighlight(){
-highlightMeshes.forEach(mat=>{
-mat.emissive = new THREE.Color(0x00ffff);
-mat.emissiveIntensity = intensity;
-});
+highlightMeshes.forEach(mat=>{mat.emissive = new THREE.Color(0x00ffff); mat.emissiveIntensity=intensity;});
 if(increasing){intensity+=0.02;if(intensity>=0.8) increasing=false;}
 else{intensity-=0.02;if(intensity<=0.2){highlightMeshes.forEach(mat=>mat.emissiveIntensity=0.5);return;}}
 requestAnimationFrame(animateHighlight);
@@ -460,12 +457,7 @@ for(let i=0;i<120;i++){particles.push({x:Math.random()*techCanvas.width,y:Math.r
 function animateParticles(){
 ctx.clearRect(0,0,techCanvas.width,techCanvas.height);
 ctx.fillStyle="#00ffff";
-particles.forEach(p=>{
-p.x+=p.dx;p.y+=p.dy;
-if(p.x<0||p.x>techCanvas.width)p.dx*=-1;
-if(p.y<0||p.y>techCanvas.height)p.dy*=-1;
-ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
-});
+particles.forEach(p=>{p.x+=p.dx;p.y+=p.dy;if(p.x<0||p.x>techCanvas.width)p.dx*=-1;if(p.y<0||p.y>techCanvas.height)p.dy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();});
 requestAnimationFrame(animateParticles);
 }
 animateParticles();
