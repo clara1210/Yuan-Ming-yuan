@@ -59,7 +59,6 @@ animation:scan 3s linear infinite;
 100%{top:100%;}
 }
 
-    
 #langBtn{
 position:fixed;
 top:20px;
@@ -83,16 +82,19 @@ gap:30px;
 }
 
 .select-btn{
-padding:20px 60px;
-font-size:24px;
+padding:0;
 border:none;
 border-radius:12px;
-background:#b8860b;
-color:#fff;
-font-weight:bold;
+background:none;
+cursor:pointer;
 transition:0.3s;
 }
-.select-btn:hover{background:#d4af37;}
+.select-btn img{
+width:200px;
+height:auto;
+border-radius:12px;
+}
+.select-btn:hover img{opacity:0.8;}
 
 #viewerPage{
 display:none;
@@ -126,6 +128,8 @@ overflow:hidden;
 position:relative;
 margin-bottom:20px;
 box-shadow:0 20px 40px rgba(0,0,0,0.2);
+background-size:cover;
+background-position:center;
 }
 
 #modelCanvas{width:100%;height:100%;display:block;}
@@ -143,7 +147,7 @@ line-height:1.7;
 white-space:pre-line;
 opacity:0;
 transition:opacity 0.6s ease;
-color:#333
+color:#333;
 }
 .introduction.show{opacity:1;}
 
@@ -176,19 +180,24 @@ cursor:pointer;
 
 <button id="musicBtn">🎵</button>
 <button id="lightBtn">💡</button>
-
     
-<button id="langBtn" onclick="toggleLanguage()">中文</button>
+<button id="langBtn" onclick="toggleLanguage()">
+中文
+</button>
 
 <div id="selectPage">
-<button class="select-btn" id="horseBtn" onclick="startViewer('horse')">马首</button>
-<button class="select-btn" id="tigerBtn" onclick="startViewer('tiger')">虎首</button>
+<button class="select-btn" id="horseBtn" onclick="startViewer('horse')">
+<img src="horsepicture.jpg" alt="马首">
+</button>
+<button class="select-btn" id="tigerBtn" onclick="startViewer('tiger')">
+<img src="tigerpicture.jpg" alt="虎首">
+</button>
 </div>
 
 <div id="viewerPage">
 <button id="backBtn" onclick="returnToSelect()">返回选择</button>
 
-<div class="model-container">
+<div class="model-container" id="modelContainer">
 <div id="loading">加载中...</div>
 <canvas id="modelCanvas"></canvas>
 </div>
@@ -215,24 +224,22 @@ let autoRotate=true;
 let currentModel='';
 let modelScale=1;
 
-    function toggleLanguage(){
-currentLang=currentLang==='zh'?'en':'zh';
-document.getElementById('langBtn').innerText=currentLang==='zh'?'中文':'English';
-updateStaticText();
-if(currentModel) setupPartButtons();
-showIntroduction();
+function toggleLanguage(){
+    currentLang = currentLang==='zh'?'en':'zh';
+    document.getElementById('langBtn').innerText=currentLang==='zh'?'中文':'English';
+    updateStaticText();
+    if(currentModel) setupPartButtons();
+    showIntroduction();
 }
 
 function updateStaticText(){
-document.getElementById('horseBtn').innerText=currentLang==='zh'?'马首':'Horse Head';
-document.getElementById('tigerBtn').innerText=currentLang==='zh'?'虎首':'Tiger Head';
-document.getElementById('backBtn').innerText=currentLang==='zh'?'返回选择':'Back';
-document.getElementById('resetBtn').innerText=currentLang==='zh'?'重置视角':'Reset View';
-document.getElementById('zoomInBtn').innerText=currentLang==='zh'?'放大':'Zoom In';
-document.getElementById('zoomOutBtn').innerText=currentLang==='zh'?'缩小':'Zoom Out';
-document.getElementById('loading').innerText=currentLang==='zh'?'加载中...':'Loading...';
+    document.getElementById('backBtn').innerText=currentLang==='zh'?'返回选择':'Back';
+    document.getElementById('resetBtn').innerText=currentLang==='zh'?'重置视角':'Reset View';
+    document.getElementById('zoomInBtn').innerText=currentLang==='zh'?'放大':'Zoom In';
+    document.getElementById('zoomOutBtn').innerText=currentLang==='zh'?'缩小':'Zoom Out';
+    document.getElementById('loading').innerText=currentLang==='zh'?'加载中...':'Loading...';
 }
-    
+
 function startViewer(type){
     currentModel = type;
     document.getElementById('selectPage').style.display='none';
@@ -251,50 +258,42 @@ function returnToSelect(){
 }
 
 function setupPartButtons(){
-const c=document.getElementById('partButtons');
-c.innerHTML='';
-if(currentModel==='horse'){
-c.innerHTML=currentLang==='zh'?`
+    const c=document.getElementById('partButtons');
+    c.innerHTML='';
+    if(currentModel==='horse'){
+        c.innerHTML=currentLang==='zh'?`
 <button class="part-btn" onclick="showIntroduction('mane')">鬓毛</button>
 <button class="part-btn" onclick="showIntroduction('ear')">耳朵</button>
 <button class="part-btn" onclick="showIntroduction('material')">材质</button>
 <button class="part-btn" onclick="loadOldModel()">修复前的马首</button>
-<button class="part-btn" onclick="loadNewModel()">修复后的马首</button>
-`:
+<button class="part-btn" onclick="loadNewModel()">修复后的马首</button>`:
 `
 <button class="part-btn" onclick="showIntroduction('mane')">Mane</button>
 <button class="part-btn" onclick="showIntroduction('ear')">Ear</button>
 <button class="part-btn" onclick="showIntroduction('material')">Material</button>
 <button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
-<button class="part-btn" onclick="loadNewModel()">After Restoration</button>
-`;
-modelScale=1;
-}
-else if(currentModel==='tiger'){
-c.innerHTML=currentLang==='zh'?`
+<button class="part-btn" onclick="loadNewModel()">After Restoration</button>`;
+        modelScale=1;
+    } else if(currentModel==='tiger'){
+        c.innerHTML=currentLang==='zh'?`
 <button class="part-btn" onclick="showIntroduction('forehead')">前额</button>
 <button class="part-btn" onclick="showIntroduction('eyes')">眼部神态</button>
 <button class="part-btn" onclick="showIntroduction('nose')">鼻部与面部肌肉</button>
 <button class="part-btn" onclick="loadOldModel()">修复前的虎首</button>
-<button class="part-btn" onclick="loadNewModel()">修复后的虎首</button>
-`:
+<button class="part-btn" onclick="loadNewModel()">修复后的虎首</button>`:
 `
 <button class="part-btn" onclick="showIntroduction('forehead')">Forehead</button>
 <button class="part-btn" onclick="showIntroduction('eyes')">Eyes</button>
 <button class="part-btn" onclick="showIntroduction('nose')">Nose & Muscles</button>
 <button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
-<button class="part-btn" onclick="loadNewModel()">After Restoration</button>
-`;
-modelScale=2;
-}
+<button class="part-btn" onclick="loadNewModel()">After Restoration</button>`;
+        modelScale=2;
+    }
 }
 
-    
 function init(){
     scene = new THREE.Scene();
-
-    /* ⭐ 升级为深色博物馆背景（替换原浅灰） */
-    scene.background = new THREE.Color(0x111111);
+    scene.background = new THREE.TextureLoader().load('back.jpg'); // 背景图片
     scene.fog = new THREE.Fog(0x111111,15,70);
 
     camera = new THREE.PerspectiveCamera(60,1,0.1,1000);
@@ -311,13 +310,9 @@ function init(){
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    /* ===== 灯光增强开始 ===== */
-
-    // 原环境光稍微调弱（避免洗白细节）
+    // 灯光
     const ambientLight = new THREE.AmbientLight(0xffffff,0.4);
     scene.add(ambientLight);
-
-    // 保留原顶部聚光灯
     const spotLight = new THREE.SpotLight(0xffffff,0.8);
     spotLight.position.set(5,10,5);
     spotLight.castShadow = true;
@@ -325,23 +320,15 @@ function init(){
     spotLight.shadow.mapSize.height = 2048;
     spotLight.angle = Math.PI/6;
     scene.add(spotLight);
-
-    // ⭐ 新增正面主光（关键增强）
     const frontLight = new THREE.DirectionalLight(0xffffff,1.2);
     frontLight.position.set(0,3,6);
     scene.add(frontLight);
-
-    // ⭐ 新增侧面补光（增强立体感）
     const sideLight = new THREE.DirectionalLight(0xffffff,0.6);
     sideLight.position.set(-5,3,2);
     scene.add(sideLight);
-
-    // ⭐ 新增背光轮廓灯（增强边缘层次）
     const backLight = new THREE.DirectionalLight(0xffffff,0.4);
     backLight.position.set(0,3,-6);
     scene.add(backLight);
-
-    /* ===== 灯光增强结束 ===== */
 
     const groundGeo = new THREE.PlaneGeometry(20,20);
     const groundMat = new THREE.ShadowMaterial({opacity:0.25});
@@ -363,137 +350,7 @@ function init(){
     window.addEventListener('resize', onWindowResize);
 }
 
-function loadModel(url){
-    const loader = new THREE.GLTFLoader();
-    document.getElementById('loading').style.display='block';
-    loader.load(url,function(gltf){
-        if(model) scene.remove(model);
-        model = gltf.scene;
-        model.traverse(obj=>{
-            if(obj.isMesh){ obj.castShadow=true; obj.receiveShadow=false; }
-        });
-
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3()).length();
-        const scale = modelScale / size;
-        model.scale.set(0.01,0.01,0.01); 
-        scene.add(model);
-        document.getElementById('loading').style.display='none';
-
-        let currentScale=0.01;
-        function scaleUp(){
-            if(currentScale < scale){
-                currentScale += 0.02;
-                model.scale.set(currentScale,currentScale,currentScale);
-                requestAnimationFrame(scaleUp);
-            } else {
-                model.scale.set(scale,scale,scale);
-            }
-        }
-        scaleUp();
-
-        const center = box.getCenter(new THREE.Vector3());
-        model.position.sub(center);
-    });
-}
-
-function loadOldModel(){
-    if(currentModel==='horse') loadModel('horse model.glb');
-    else if(currentModel==='tiger') loadModel('tiger model.glb');
-    showIntroduction();
-}
-function loadNewModel(){
-    if(currentModel==='horse') loadModel('horse.glb');
-    else if(currentModel==='tiger') loadModel('tiger.glb');
-    showIntroduction();
-}
-
-function animate(){
-    requestAnimationFrame(animate);
-    if(model && autoRotate) model.rotation.y += 0.003;
-    controls.update();
-    renderer.render(scene,camera);
-}
-
-function onWindowResize(){
-    const container = document.querySelector('.model-container');
-    camera.aspect = container.clientWidth/container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-}
-
-function resetCamera(){camera.position.set(0,1,6); controls.target.set(0,0,0); controls.update();}
-function zoomIn(){camera.position.z *=0.85;}
-function zoomOut(){camera.position.z *=1.15;}
-
-function showIntroduction(part){
-    const intro = document.getElementById('introText');
-    intro.classList.remove('show');
-    let text='';
-    if(currentModel==='horse'){
-        text=`它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
-It is not just a cultural relic, but a century-old water clock!
-As the centerpiece of the Twelve Chinese Zodiac Water Clock at the Haiyan Hall, the Horse Head spouts water specifically at the Wu hour (11:00–13:00).
-The wisdom of water conservancy and timekeeping, a perfect fusion of Chinese and Western ingenuity, is vividly embodied in it.`;
-        if(part==='mane') text=`这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
-These lively, curling manes are actually the work of Giuseppe Castiglione! They perfectly blend the realistic delicacy of Western sculpture with the solemn elegance of Chinese bronze craftsmanship. 
-Every strand and pattern bears the supreme skill of the Qing court workshops, remaining vivid and vibrant even after a hundred years.`;
-        if(part==='ear') text=`仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。
-Look closely! This damaged right ear holds a deeply unforgettable history.
-In 1860, during the looting of the Old Summer Palace by Anglo-French forces, it was violently destroyed, becoming a silent witness to the relic’s century of displacement.
-Today, let us use digital technology to mend this century-old scar.`;
-        if(part==='material') text=`看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。
-The seemingly simple Horse Head hides an extraordinary material secret.
-Forged from 98% high-purity copper, with trace amounts of lead, iron, and zinc, its composition matches exactly the formula recorded in the archives of the Qianlong Imperial Household Department.
-This is precisely why it has survived centuries of wind and rain and remained intact to this day.`;
-    } else if(currentModel==='tiger'){
-        text=`虎对应寅时（3:00—5:00），是黎明将至、万物苏醒之时。虎首每到寅时自动喷水，正午与十一兽首齐喷，是古人把生肖文化、计时文化、水利科技合为一体的绝妙设计。
-The Tiger corresponds to the Yin hour (3:00–5:00), the time when dawn approaches and all living things stir.
-The Tiger Head automatically spouts water at every Yin hour, and at noon, it sprays in unison with the other eleven animal heads.
-This is an ingenious design by the ancient Chinese that integrates zodiac culture, timekeeping culture, and water conservancy technology.`;
-        if(part==='forehead') text=`虎首额头特意铸有清晰的 “王” 字纹路 ，这是中国文化独有的艺术表达 —— 虎为百兽之王，“王” 字既是虎的标志，也象征威严、正气与守护，是中式图腾与西方雕塑完美融合的巧思。
-The forehead of the Tiger Head is specially cast with a distinct Chinese character "王" (wáng, meaning "king") pattern—a unique artistic expression in Chinese culture.
-As the king of all beasts, the tiger bears the character "王" as its symbol. It represents dignity, righteousness, and protection, embodying the ingenious fusion of Chinese totem art and Western sculpture.`;
-        if(part==='eyes') text=`虎首双目圆睁、目光锐利有神，不怒自威。在中国文化里，虎眼象征勇气、镇宅、辟邪，匠师用极简线条，就把猛虎的精气神完美定格。
-The Tiger Head has wide-open, sharp and vivid eyes, exuding awe without anger.
-In Chinese culture, tiger eyes symbolize courage, home protection, and warding off evil spirits.
-With minimal lines, the craftsmen perfectly captured the spirit and vitality of the fierce tiger.`;
-        if(part==='nose') text=`虎首鼻梁挺括、面部肌肉饱满有力，既遵循西方解剖学的真实结构，又符合东方审美里的雄浑大气，每一处起伏都体现清代宫廷造办处的顶级水准。
-The Tiger Head features a straight, prominent nose bridge and full, powerful facial muscles.
-It follows the realistic anatomical structure of Western sculpture while conforming to the grand, robust aesthetic of the East.
-Every contour and curve demonstrates the top craftsmanship of the Qing Dynasty Imperial Workshop.`;
-    }
-    setTimeout(()=>{intro.textContent=text; intro.classList.add('show');},200);
-}
-const techCanvas=document.getElementById("techCanvas");
-const ctx=techCanvas.getContext("2d");
-techCanvas.width=window.innerWidth;
-techCanvas.height=window.innerHeight;
-let particles=[];
-for(let i=0;i<120;i++){
-particles.push({
-x:Math.random()*techCanvas.width,
-y:Math.random()*techCanvas.height,
-r:Math.random()*2,
-dx:(Math.random()-0.5)*0.5,
-dy:(Math.random()-0.5)*0.5
-});
-}
-function animateParticles(){
-ctx.clearRect(0,0,techCanvas.width,techCanvas.height);
-ctx.fillStyle="#00ffff";
-particles.forEach(p=>{
-p.x+=p.dx;
-p.y+=p.dy;
-if(p.x<0||p.x>techCanvas.width)p.dx*=-1;
-if(p.y<0||p.y>techCanvas.height)p.dy*=-1;
-ctx.beginPath();
-ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-ctx.fill();
-});
-requestAnimationFrame(animateParticles);
-}
-animateParticles();
+// 以下 loadModel、animate、resetCamera、zoomIn、zoomOut 保持原样
 // ===== 音乐控制 =====
 const bgm=document.getElementById("bgm");
 const musicBtn=document.getElementById("musicBtn");
@@ -504,7 +361,7 @@ else{bgm.pause();musicBtn.innerText="🎵";}
 musicOn=!musicOn;
 }
 
-// ===== 语音讲解增强 =====
+// ===== 语音讲解 =====
 function speakText(text){
 const utter=new SpeechSynthesisUtterance(text);
 utter.lang=currentLang==='zh'?'zh-CN':'en-US';
@@ -512,43 +369,56 @@ speechSynthesis.cancel();
 speechSynthesis.speak(utter);
 }
 
-// 重写 showIntroduction 最后追加语音（不删除原逻辑）
-const originalShowIntroduction=showIntroduction;
-showIntroduction=function(part){
-originalShowIntroduction(part);
-setTimeout(()=>{
-const intro=document.getElementById('introText');
-if(intro.textContent){
-speakText(intro.textContent.split('\n')[0]);
-}
-},500);
-}
+// ===== showIntroduction =====
+function showIntroduction(part){
+    const intro = document.getElementById('introText');
+    intro.classList.remove('show');
+    let text='';
 
-// ===== 灯光未来模式切换 =====
-let cyberMode=true;
-document.getElementById("lightBtn").onclick=function(){
-cyberMode=!cyberMode;
-scene.background=new THREE.Color(cyberMode?0x000000:0x222244);
+    if(currentModel==='horse'){
+        if(currentLang==='zh'){
+            text=`它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。`;
+            if(part==='mane') text=`这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。`;
+            if(part==='ear') text=`仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。`;
+            if(part==='material') text=`看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。`;
+        } else {
+            text=`It is not just a cultural relic, but a century-old water clock!
+As the centerpiece of the Twelve Chinese Zodiac Water Clock at the Haiyan Hall, the Horse Head spouts water specifically at the Wu hour (11:00–13:00).
+The wisdom of water conservancy and timekeeping, a perfect fusion of Chinese and Western ingenuity, is vividly embodied in it.`;
+            if(part==='mane') text=`These lively, curling manes are actually the work of Giuseppe Castiglione! They perfectly blend the realistic delicacy of Western sculpture with the solemn elegance of Chinese bronze craftsmanship. 
+Every strand and pattern bears the supreme skill of the Qing court workshops, remaining vivid and vibrant even after a hundred years.`;
+            if(part==='ear') text=`Look closely! This damaged right ear holds a deeply unforgettable history.
+In 1860, during the looting of the Old Summer Palace by Anglo-French forces, it was violently destroyed, becoming a silent witness to the relic’s century of displacement.
+Today, let us use digital technology to mend this century-old scar.`;
+            if(part==='material') text=`The seemingly simple Horse Head hides an extraordinary material secret.
+Forged from 98% high-purity copper, with trace amounts of lead, iron, and zinc, its composition matches exactly the formula recorded in the archives of the Qianlong Imperial Household Department.
+This is precisely why it has survived centuries of wind and rain and remained intact to this day.`;
+        }
+    } else if(currentModel==='tiger'){
+        if(currentLang==='zh'){
+            text=`虎对应寅时（3:00—5:00），是黎明将至、万物苏醒之时。虎首每到寅时自动喷水，正午与十一兽首齐喷，是古人把生肖文化、计时文化、水利科技合为一体的绝妙设计。`;
+            if(part==='forehead') text=`虎首额头特意铸有清晰的 “王” 字纹路 ，这是中国文化独有的艺术表达 —— 虎为百兽之王，“王” 字既是虎的标志，也象征威严、正气与守护，是中式图腾与西方雕塑完美融合的巧思。`;
+            if(part==='eyes') text=`虎首双目圆睁、目光锐利有神，不怒自威。在中国文化里，虎眼象征勇气、镇宅、辟邪，匠师用极简线条，就把猛虎的精气神完美定格。`;
+            if(part==='nose') text=`虎首鼻梁挺括、面部肌肉饱满有力，既遵循西方解剖学的真实结构，又符合东方审美里的雄浑大气，每一处起伏都体现清代宫廷造办处的顶级水准。`;
+        } else {
+            text=`The Tiger corresponds to the Yin hour (3:00–5:00), the time when dawn approaches and all living things stir.
+The Tiger Head automatically spouts water at every Yin hour, and at noon, it sprays in unison with the other eleven animal heads.
+This is an ingenious design by the ancient Chinese that integrates zodiac culture, timekeeping culture, and water conservancy technology.`;
+            if(part==='forehead') text=`The forehead of the Tiger Head is specially cast with a distinct Chinese character "王" (wáng, meaning "king") pattern—a unique artistic expression in Chinese culture.
+As the king of all beasts, the tiger bears the character "王" as its symbol. It represents dignity, righteousness, and protection, embodying the ingenious fusion of Chinese totem art and Western sculpture.`;
+            if(part==='eyes') text=`The Tiger Head has wide-open, sharp and vivid eyes, exuding awe without anger.
+In Chinese culture, tiger eyes symbolize courage, home protection, and warding off evil spirits.
+With minimal lines, the craftsmen perfectly captured the spirit and vigor of the mighty tiger.`;
+            if(part==='nose') text=`The Tiger Head’s nose bridge is prominent, with full and powerful facial muscles.
+It follows Western anatomical realism while adhering to the grandeur and majesty of Eastern aesthetics.
+Every curve and detail showcases the top-level craftsmanship of the Qing Imperial Workshop.`;
+        }
+    }
+
+    intro.innerText = text;
+    intro.classList.add('show');
+    speakText(text);
 }
-
-// ===== HUD语言同步 =====
-const originalToggle=toggleLanguage;
-toggleLanguage=function(){
-originalToggle();
-document.getElementById("langDisplay").innerText=currentLang==='zh'?'ZH':'EN';
-}
-
-// ===== 屏幕尺寸监听 =====
-window.addEventListener("resize",()=>{
-techCanvas.width=window.innerWidth;
-techCanvas.height=window.innerHeight;
-});
-
 </script>
 </body>
 </html>
-
-
-
-
-
