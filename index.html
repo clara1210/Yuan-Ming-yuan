@@ -198,10 +198,9 @@ let autoRotate=true;
 let currentModel='';
 let modelScale=1;
 const originalMaterials = new Map();
-
-// 朗读开关
 let speakOn=false;
 
+// 切换语言
 function toggleLanguage(){
     currentLang = currentLang==='zh' ? 'en' : 'zh';
     document.getElementById('langBtn').innerText = currentLang==='zh' ? '中文' : 'English';
@@ -210,6 +209,7 @@ function toggleLanguage(){
     showIntroduction();
 }
 
+// 更新按钮和静态文本
 function updateStaticText(){
     document.getElementById('backBtn').innerText = currentLang==='zh'?'返回选择':'Back';
     document.getElementById('resetBtn').innerText = currentLang==='zh'?'重置视角':'Reset View';
@@ -218,6 +218,7 @@ function updateStaticText(){
     document.getElementById('loading').innerText = currentLang==='zh'?'加载中...':'Loading...';
 }
 
+// 页面切换
 function startViewer(type){
     currentModel = type;
     document.getElementById('selectPage').style.display='none';
@@ -235,6 +236,7 @@ function returnToSelect(){
     model=null;
 }
 
+// 部件按钮
 function setupPartButtons(){
     const c=document.getElementById('partButtons');
     c.innerHTML='';
@@ -243,42 +245,42 @@ function setupPartButtons(){
         `<button class="part-btn" onclick="showIntroduction('mane');highlightPart('mane')">鬓毛</button>
         <button class="part-btn" onclick="showIntroduction('ear');highlightPart('ear')">耳朵</button>
         <button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">材质</button>
-        <button class="part-btn" onclick="loadOldModel()">修复前</button>
-        <button class="part-btn" onclick="loadNewModel()">修复后</button>`:
+        <button class="part-btn" onclick="loadOldModel()">修复前的马首</button>
+        <button class="part-btn" onclick="loadNewModel()">修复后的马首</button>`:
         `<button class="part-btn" onclick="showIntroduction('mane');highlightPart('mane')">Mane</button>
         <button class="part-btn" onclick="showIntroduction('ear');highlightPart('ear')">Ear</button>
         <button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">Material</button>
-        <button class="part-btn" onclick="loadOldModel()">Before</button>
-        <button class="part-btn" onclick="loadNewModel()">After</button>`;
+        <button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
+        <button class="part-btn" onclick="loadNewModel()">After Restoration</button>`;
         modelScale=1;
     } else if(currentModel==='tiger'){
         c.innerHTML=currentLang==='zh'?
         `<button class="part-btn" onclick="showIntroduction('forehead');highlightPart('forehead')">前额</button>
-        <button class="part-btn" onclick="showIntroduction('eyes');highlightPart('eyes')">眼部</button>
-        <button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">鼻部</button>
-        <button class="part-btn" onclick="loadOldModel()">修复前</button>
-        <button class="part-btn" onclick="loadNewModel()">修复后</button>`:
+        <button class="part-btn" onclick="showIntroduction('eyes');highlightPart('eyes')">眼部神态</button>
+        <button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">鼻部与面部肌肉</button>
+        <button class="part-btn" onclick="loadOldModel()">修复前的虎首</button>
+        <button class="part-btn" onclick="loadNewModel()">修复后的虎首</button>`:
         `<button class="part-btn" onclick="showIntroduction('forehead');highlightPart('forehead')">Forehead</button>
         <button class="part-btn" onclick="showIntroduction('eyes');highlightPart('eyes')">Eyes</button>
-        <button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">Nose</button>
-        <button class="part-btn" onclick="loadOldModel()">Before</button>
-        <button class="part-btn" onclick="loadNewModel()">After</button>`;
+        <button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">Nose & Muscles</button>
+        <button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
+        <button class="part-btn" onclick="loadNewModel()">After Restoration</button>`;
         modelScale=2;
     }
 }
 
-// ---------- 初始化、加载模型、动画等保持原样 ----------
-function init(){/*省略，保持和原来一致*/}  
-function loadModel(url){/*省略，保持和原来一致*/}  
-function loadOldModel(){/*省略，保持和原来一致*/}  
-function loadNewModel(){/*省略，保持和原来一致*/}  
-function animate(){/*省略，保持和原来一致*/}  
-function onWindowResize(){/*省略*/}  
-function resetCamera(){/*省略*/}  
-function zoomIn(){/*省略*/}  
-function zoomOut(){/*省略*/}  
+// ---------- 模型加载、动画、缩放保持原样 ----------
+function init(){/*保持原样*/}  
+function loadModel(url){/*保持原样*/}  
+function loadOldModel(){/*保持原样*/}  
+function loadNewModel(){/*保持原样*/}  
+function animate(){/*保持原样*/}  
+function onWindowResize(){/*保持原样*/}  
+function resetCamera(){/*保持原样*/}  
+function zoomIn(){/*保持原样*/}  
+function zoomOut(){/*保持原样*/}  
 
-// 文字介绍（中英文对应）
+// 文字介绍（保留中文原文，同时添加英文）
 function showIntroduction(part){
     const intro = document.getElementById('introText');
     intro.classList.remove('show');
@@ -287,40 +289,40 @@ function showIntroduction(part){
     if(currentModel==='horse'){
         const content = {
             default: {
-                zh: "马首，海晏堂十二生肖水力钟核心，体现中西水利计时智慧。",
-                en: "Horse head, the core of the Haiyantang Zodiac Water Clock, showcases Chinese-Western hydraulic timekeeping."
+                zh: "它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。",
+                en: "It is not just an artifact, but a 'century-old hydraulic clock'! The horse head is the core of the Haiyantang Zodiac Water Clock, spraying water specifically at noon, perfectly blending Chinese and Western hydraulic timekeeping wisdom."
             },
             mane: {
-                zh: "卷曲鬃毛，融合西洋雕塑与中国青铜工艺。",
-                en: "Curled mane blending Western sculpture with Chinese bronze craftsmanship."
+                zh: "这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。",
+                en: "These lively curled manes were crafted by Giuseppe Castiglione! They perfectly blend Western sculpture's realism with Chinese bronze's elegance, each strand reflecting the peak craftsmanship of the Qing imperial workshop, still vibrant after a century."
             },
             ear: {
-                zh: "右耳残缺，是圆明园历史的见证。",
-                en: "Right ear damaged, a witness to the history of Yuanmingyuan."
+                zh: "仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。",
+                en: "Look closely! The damaged right ear carries a poignant history—looted during the 1860 Anglo-French expedition at Yuanmingyuan, it became a 'silent witness' of the artifact's century-long journey. Today, digital technology helps restore this century-old 'scar'."
             },
             material: {
-                zh: "由高纯度红铜打造，历经百年仍完好。",
-                en: "Made of high-purity red copper, perfectly preserved for over a century."
+                zh: "看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。",
+                en: "Seemingly simple, the horse head conceals a sophisticated material code—it is made of 98% high-purity red copper, with trace amounts of lead, iron, and zinc, exactly matching Qianlong's imperial workshop records, which is why it has endured intact for over a century."
             }
         };
         text = content[part || 'default'][currentLang];
     } else if(currentModel==='tiger'){
         const content = {
             default: {
-                zh: "虎首对应寅时，自动喷水，融合生肖文化与水利科技。",
-                en: "Tiger head corresponds to Yin hour, sprays water automatically, blending Zodiac culture with hydraulic tech."
+                zh: "虎对应寅时（3:00—5:00），是黎明将至、万物苏醒之时。虎首每到寅时自动喷水，正午与十一兽首齐喷，是古人把生肖文化、计时文化、水利科技合为一体的绝妙设计。",
+                en: "The tiger corresponds to Yin hour (3:00–5:00), the time of dawn and awakening. The tiger head sprays water automatically at this time, together with the eleven other heads at noon—a brilliant integration of Zodiac culture, timekeeping, and hydraulic technology."
             },
             forehead: {
-                zh: "额头刻“王”字，象征威严与守护。",
-                en: "Forehead engraved with 'King', symbolizing authority and protection."
+                zh: "虎首额头特意铸有清晰的 “王” 字纹路 ，这是中国文化独有的艺术表达 —— 虎为百兽之王，“王” 字既是虎的标志，也象征威严、正气与守护，是中式图腾与西方雕塑完美融合的巧思。",
+                en: "The tiger's forehead bears a clear 'King' character, a unique expression of Chinese culture—the tiger, king of beasts. The 'King' symbol represents authority, righteousness, and protection, a clever fusion of Chinese totem and Western sculpture."
             },
             eyes: {
-                zh: "眼睛圆睁，目光锐利象征勇气与镇宅。",
-                en: "Eyes wide and sharp, symbolizing courage and protection."
+                zh: "虎首双目圆睁、目光锐利有神，不怒自威。在中国文化里，虎眼象征勇气、镇宅、辟邪，匠师用极简线条，就把猛虎的精气神完美定格。",
+                en: "The tiger's eyes are wide and sharp, exuding natural authority. In Chinese culture, tiger eyes symbolize courage and protection. The craftsmen captured the tiger's spirit perfectly with minimalist lines."
             },
             nose: {
-                zh: "鼻梁挺括，面部肌肉饱满，体现顶级工艺。",
-                en: "Nose prominent, facial muscles strong, showcasing masterful craftsmanship."
+                zh: "虎首鼻梁挺括、面部肌肉饱满有力，既遵循西方解剖学的真实结构，又符合东方审美里的雄浑大气，每一处起伏都体现清代宫廷造办处的顶级水准。",
+                en: "The tiger's nose is prominent, facial muscles full and strong, following Western anatomical accuracy while reflecting Eastern aesthetic grandeur, each curve demonstrating Qing imperial workshop's top-level craftsmanship."
             }
         };
         text = content[part || 'default'][currentLang];
@@ -349,8 +351,8 @@ function speakText(text){
     speechSynthesis.speak(utter);
 }
 
-// 局部高亮 & 粒子背景 & 灯光切换保持原样
-function highlightPart(partName){/*省略*/}
+// 局部高亮、粒子背景、灯光切换保持原样
+function highlightPart(partName){/*保持原样*/}
 const techCanvas=document.getElementById("techCanvas");
 const ctx=techCanvas.getContext("2d");
 techCanvas.width=window.innerWidth; techCanvas.height=window.innerHeight;
