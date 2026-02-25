@@ -143,6 +143,7 @@ line-height:1.7;
 white-space:pre-line;
 opacity:0;
 transition:opacity 0.6s ease;
+color:#333
 }
 .introduction.show{opacity:1;}
 
@@ -176,14 +177,8 @@ cursor:pointer;
 <button id="musicBtn">🎵</button>
 <button id="lightBtn">💡</button>
 
-<div id="hudPanel">
-🏛 FUTURE DIGITAL HERITAGE SYSTEM<br>
-AI Scan: Active<br>
-3D Engine: Three.js<br>
-Language Mode: <span id="langDisplay">ZH</span>
-</div>
     
-<button id="langBtn" onclick="toggleLanguage()">English</button>
+<button id="langBtn" onclick="toggleLanguage()">中文</button>
 
 <div id="selectPage">
 <button class="select-btn" id="horseBtn" onclick="startViewer('horse')">马首</button>
@@ -552,6 +547,7 @@ techCanvas.height=window.innerHeight;
 </script>
 </body>
 </html>
+
 
 
 
