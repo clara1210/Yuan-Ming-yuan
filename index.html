@@ -4,12 +4,62 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>圆明园构件3D展示</title>
-
+    
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family: Arial, sans-serif;background:#f0f0f0;}
+body{font-family: Arial, sans-serif;background:#000;color:#fff;overflow-x:hidden;}
 button{cursor:pointer;}
 
+#techCanvas{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:-1;
+}
+
+#hudPanel{
+position:fixed;
+left:20px;
+bottom:20px;
+background:rgba(0,255,255,0.1);
+border:1px solid #00ffff;
+padding:15px;
+border-radius:10px;
+font-size:13px;
+backdrop-filter:blur(5px);
+}
+
+#musicBtn,#lightBtn{
+position:fixed;
+right:20px;
+padding:8px 12px;
+border:none;
+border-radius:6px;
+background:#00ffff;
+color:#000;
+z-index:9999;
+font-weight:bold;
+}
+#musicBtn{bottom:20px;}
+#lightBtn{bottom:60px;}
+
+#scanLine{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:4px;
+background:linear-gradient(to right,transparent,#00ffff,transparent);
+animation:scan 3s linear infinite;
+}
+@keyframes scan{
+0%{top:0;}
+100%{top:100%;}
+}
+
+    
 #langBtn{
 position:fixed;
 top:20px;
@@ -116,6 +166,23 @@ cursor:pointer;
 </head>
 <body>
 
+<canvas id="techCanvas"></canvas>
+<div id="scanLine"></div>
+
+<audio id="bgm" loop>
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_7c1b5b1c8b.mp3" type="audio/mpeg">
+</audio>
+
+<button id="musicBtn">🎵</button>
+<button id="lightBtn">💡</button>
+
+<div id="hudPanel">
+🏛 FUTURE DIGITAL HERITAGE SYSTEM<br>
+AI Scan: Active<br>
+3D Engine: Three.js<br>
+Language Mode: <span id="langDisplay">ZH</span>
+</div>
+    
 <button id="langBtn" onclick="toggleLanguage()">English</button>
 
 <div id="selectPage">
@@ -403,9 +470,89 @@ Every contour and curve demonstrates the top craftsmanship of the Qing Dynasty I
     }
     setTimeout(()=>{intro.textContent=text; intro.classList.add('show');},200);
 }
+const techCanvas=document.getElementById("techCanvas");
+const ctx=techCanvas.getContext("2d");
+techCanvas.width=window.innerWidth;
+techCanvas.height=window.innerHeight;
+let particles=[];
+for(let i=0;i<120;i++){
+particles.push({
+x:Math.random()*techCanvas.width,
+y:Math.random()*techCanvas.height,
+r:Math.random()*2,
+dx:(Math.random()-0.5)*0.5,
+dy:(Math.random()-0.5)*0.5
+});
+}
+function animateParticles(){
+ctx.clearRect(0,0,techCanvas.width,techCanvas.height);
+ctx.fillStyle="#00ffff";
+particles.forEach(p=>{
+p.x+=p.dx;
+p.y+=p.dy;
+if(p.x<0||p.x>techCanvas.width)p.dx*=-1;
+if(p.y<0||p.y>techCanvas.height)p.dy*=-1;
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fill();
+});
+requestAnimationFrame(animateParticles);
+}
+animateParticles();
+// ===== 音乐控制 =====
+const bgm=document.getElementById("bgm");
+const musicBtn=document.getElementById("musicBtn");
+let musicOn=false;
+musicBtn.onclick=function(){
+if(!musicOn){bgm.play();musicBtn.innerText="🔊";}
+else{bgm.pause();musicBtn.innerText="🎵";}
+musicOn=!musicOn;
+}
+
+// ===== 语音讲解增强 =====
+function speakText(text){
+const utter=new SpeechSynthesisUtterance(text);
+utter.lang=currentLang==='zh'?'zh-CN':'en-US';
+speechSynthesis.cancel();
+speechSynthesis.speak(utter);
+}
+
+// 重写 showIntroduction 最后追加语音（不删除原逻辑）
+const originalShowIntroduction=showIntroduction;
+showIntroduction=function(part){
+originalShowIntroduction(part);
+setTimeout(()=>{
+const intro=document.getElementById('introText');
+if(intro.textContent){
+speakText(intro.textContent.split('\n')[0]);
+}
+},500);
+}
+
+// ===== 灯光未来模式切换 =====
+let cyberMode=true;
+document.getElementById("lightBtn").onclick=function(){
+cyberMode=!cyberMode;
+scene.background=new THREE.Color(cyberMode?0x000000:0x222244);
+}
+
+// ===== HUD语言同步 =====
+const originalToggle=toggleLanguage;
+toggleLanguage=function(){
+originalToggle();
+document.getElementById("langDisplay").innerText=currentLang==='zh'?'ZH':'EN';
+}
+
+// ===== 屏幕尺寸监听 =====
+window.addEventListener("resize",()=>{
+techCanvas.width=window.innerWidth;
+techCanvas.height=window.innerHeight;
+});
+
 </script>
 </body>
 </html>
+
 
 
 
