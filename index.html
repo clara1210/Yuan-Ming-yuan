@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>圆明园构件3D展示</title>
+    
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family: Arial, sans-serif;background:#000;color:#fff;overflow-x:hidden;}
@@ -18,6 +19,32 @@ height:100%;
 z-index:-1;
 }
 
+#hudPanel{
+position:fixed;
+left:20px;
+bottom:20px;
+background:rgba(0,255,255,0.1);
+border:1px solid #00ffff;
+padding:15px;
+border-radius:10px;
+font-size:13px;
+backdrop-filter:blur(5px);
+}
+
+#musicBtn,#lightBtn{
+position:fixed;
+right:20px;
+padding:8px 12px;
+border:none;
+border-radius:6px;
+background:#00ffff;
+color:#000;
+z-index:9999;
+font-weight:bold;
+}
+#musicBtn{bottom:20px;}
+#lightBtn{bottom:60px;}
+
 #scanLine{
 position:fixed;
 top:0;
@@ -27,7 +54,10 @@ height:4px;
 background:linear-gradient(to right,transparent,#00ffff,transparent);
 animation:scan 3s linear infinite;
 }
-@keyframes scan{0%{top:0;}100%{top:100%;}}
+@keyframes scan{
+0%{top:0;}
+100%{top:100%;}
+}
 
 #langBtn{
 position:fixed;
@@ -95,6 +125,7 @@ box-shadow:0 20px 40px rgba(0,0,0,0.2);
 }
 
 #modelCanvas{width:100%;height:100%;display:block;}
+
 
 .introduction{
 width:100%;
@@ -291,7 +322,7 @@ c.innerHTML=currentLang==='zh'?`
 <button class="part-btn" onclick="showIntroduction('ear');highlightPart('ear')">Ear</button>
 <button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">Material</button>
 `;
-modelScale=1;
+modelScale=2;
 }
 else if(currentModel==='tiger'){
 c.innerHTML=currentLang==='zh'?`
@@ -495,4 +526,5 @@ window.addEventListener("resize",()=>{
 </script>
 </body>
 </html>
+
 
