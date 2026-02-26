@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>圆明园构件3D展示</title>
-    
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family: Arial, sans-serif;background:#000;color:#fff;overflow-x:hidden;}
@@ -19,32 +18,6 @@ height:100%;
 z-index:-1;
 }
 
-#hudPanel{
-position:fixed;
-left:20px;
-bottom:20px;
-background:rgba(0,255,255,0.1);
-border:1px solid #00ffff;
-padding:15px;
-border-radius:10px;
-font-size:13px;
-backdrop-filter:blur(5px);
-}
-
-#musicBtn,#lightBtn{
-position:fixed;
-right:20px;
-padding:8px 12px;
-border:none;
-border-radius:6px;
-background:#00ffff;
-color:#000;
-z-index:9999;
-font-weight:bold;
-}
-#musicBtn{bottom:20px;}
-#lightBtn{bottom:60px;}
-
 #scanLine{
 position:fixed;
 top:0;
@@ -54,10 +27,7 @@ height:4px;
 background:linear-gradient(to right,transparent,#00ffff,transparent);
 animation:scan 3s linear infinite;
 }
-@keyframes scan{
-0%{top:0;}
-100%{top:100%;}
-}
+@keyframes scan{0%{top:0;}100%{top:100%;}}
 
 #langBtn{
 position:fixed;
@@ -143,7 +113,7 @@ color:#333
 }
 .introduction.show{opacity:1;}
 
-.controls,.part-buttons{
+.controls{
 margin-top:20px;
 display:flex;
 gap:10px;
@@ -159,6 +129,41 @@ cursor:pointer;
 
 .control-btn{border:none;background:#ffffff;}
 .part-btn{background:#b8860b;border:none;color:#fff;font-weight:bold;}
+
+/* 右上角修复按钮容器 */
+.model-top-buttons{
+position:absolute;
+top:15px;
+right:15px;
+display:flex;
+gap:10px;
+z-index:20;
+}
+
+.model-top-buttons button{
+padding:8px 14px;
+border:none;
+border-radius:6px;
+background:#b8860b;
+color:#fff;
+font-weight:bold;
+cursor:pointer;
+transition: all 0.3s ease;
+box-shadow: 0 0 8px rgba(0,255,255,0.4);
+}
+
+/* 悬浮发光效果 */
+.model-top-buttons button:hover{
+box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
+transform: translateY(-2px);
+}
+
+/* 点击高亮效果 */
+.model-top-buttons button.active{
+background:#00ffff;
+color:#000;
+box-shadow: 0 0 30px #00ffff, 0 0 50px #00ffff, 0 0 70px #00ffff;
+}
 </style>
 </head>
 <body>
@@ -172,7 +177,6 @@ cursor:pointer;
 
 <button id="musicBtn">🎵</button>
 <button id="lightBtn">💡</button>
-
 <button id="langBtn" onclick="toggleLanguage()">中文</button>
 
 <div id="selectPage">
@@ -186,6 +190,12 @@ cursor:pointer;
 <div class="model-container">
 <div id="loading">加载中...</div>
 <canvas id="modelCanvas"></canvas>
+
+<!-- 右上角修复按钮 -->
+<div class="model-top-buttons">
+<button id="oldBtn">修复前</button>
+<button id="newBtn">修复后</button>
+</div>
 </div>
 
 <div class="introduction" id="introText"></div>
@@ -210,18 +220,26 @@ let autoRotate=true;
 let currentModel='';
 let modelScale=1;
 const originalMaterials = new Map();
-
-// 朗读开关
 let speakOn=false;
 
+// 获取右上按钮
+const oldBtn=document.getElementById('oldBtn');
+const newBtn=document.getElementById('newBtn');
+
+oldBtn.onclick = function(){loadOldModel(); oldBtn.classList.add('active'); newBtn.classList.remove('active');}
+newBtn.onclick = function(){loadNewModel(); newBtn.classList.add('active'); oldBtn.classList.remove('active');}
+
+// 语言切换
 function toggleLanguage(){
 currentLang=currentLang==='zh'?'en':'zh';
 document.getElementById('langBtn').innerText=currentLang==='zh'?'中文':'English';
 updateStaticText();
+updateRestoreButtons();
 if(currentModel) setupPartButtons();
 showIntroduction();
 }
 
+// 更新静态文字
 function updateStaticText(){
 document.getElementById('backBtn').innerText=currentLang==='zh'?'返回选择':'Back';
 document.getElementById('resetBtn').innerText=currentLang==='zh'?'重置视角':'Reset View';
@@ -230,6 +248,17 @@ document.getElementById('zoomOutBtn').innerText=currentLang==='zh'?'缩小':'Zoo
 document.getElementById('loading').innerText=currentLang==='zh'?'加载中...':'Loading...';
 }
 
+function updateRestoreButtons(){
+if(currentLang==='zh'){
+oldBtn.innerText=currentModel==='horse'?'修复前的马首':'修复前的虎首';
+newBtn.innerText=currentModel==='horse'?'修复后的马首':'修复后的虎首';
+}else{
+oldBtn.innerText="Before Restoration";
+newBtn.innerText="After Restoration";
+}
+}
+
+// 页面切换
 function startViewer(type){
 currentModel = type;
 document.getElementById('selectPage').style.display='none';
@@ -247,6 +276,7 @@ if(model) scene.remove(model);
 model=null;
 }
 
+// 设置零件按钮
 function setupPartButtons(){
 const c=document.getElementById('partButtons');
 c.innerHTML='';
@@ -255,15 +285,11 @@ c.innerHTML=currentLang==='zh'?`
 <button class="part-btn" onclick="showIntroduction('mane');highlightPart('mane')">鬓毛</button>
 <button class="part-btn" onclick="showIntroduction('ear');highlightPart('ear')">耳朵</button>
 <button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">材质</button>
-<button class="part-btn" onclick="loadOldModel()">修复前的马首</button>
-<button class="part-btn" onclick="loadNewModel()">修复后的马首</button>
 `:
 `
 <button class="part-btn" onclick="showIntroduction('mane');highlightPart('mane')">Mane</button>
 <button class="part-btn" onclick="showIntroduction('ear');highlightPart('ear')">Ear</button>
 <button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">Material</button>
-<button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
-<button class="part-btn" onclick="loadNewModel()">After Restoration</button>
 `;
 modelScale=1;
 }
@@ -272,20 +298,17 @@ c.innerHTML=currentLang==='zh'?`
 <button class="part-btn" onclick="showIntroduction('forehead');highlightPart('forehead')">前额</button>
 <button class="part-btn" onclick="showIntroduction('eyes');highlightPart('eyes')">眼部神态</button>
 <button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">鼻部与面部肌肉</button>
-<button class="part-btn" onclick="loadOldModel()">修复前的虎首</button>
-<button class="part-btn" onclick="loadNewModel()">修复后的虎首</button>
 `:
 `
 <button class="part-btn" onclick="showIntroduction('forehead');highlightPart('forehead')">Forehead</button>
 <button class="part-btn" onclick="showIntroduction('eyes');highlightPart('eyes')">Eyes</button>
 <button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">Nose & Muscles</button>
-<button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
-<button class="part-btn" onclick="loadNewModel()">After Restoration</button>
 `;
 modelScale=2;
 }
 }
 
+// 初始化 Three.js 场景
 function init(){
 scene = new THREE.Scene();
 const bgTexture = new THREE.TextureLoader().load('back.jpg');
@@ -295,32 +318,26 @@ camera = new THREE.PerspectiveCamera(60,1,0.1,1000);
 camera.position.set(0,1,6);
 
 const container = document.querySelector('.model-container');
-renderer = new THREE.WebGLRenderer({
-canvas: document.getElementById('modelCanvas'),
-antialias:true,
-alpha:true
-});
+renderer = new THREE.WebGLRenderer({canvas: document.getElementById('modelCanvas'), antialias:true, alpha:true});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 // 灯光
-const ambientLight = new THREE.AmbientLight(0xffffff,0.4); scene.add(ambientLight);
-const spotLight = new THREE.SpotLight(0xffffff,0.8); spotLight.position.set(5,10,5); spotLight.castShadow = true; scene.add(spotLight);
-const frontLight = new THREE.DirectionalLight(0xffffff,1.2); frontLight.position.set(0,3,6); scene.add(frontLight);
-const sideLight = new THREE.DirectionalLight(0xffffff,0.6); sideLight.position.set(-5,3,2); scene.add(sideLight);
-const backLight = new THREE.DirectionalLight(0xffffff,0.4); backLight.position.set(0,3,-6); scene.add(backLight);
+scene.add(new THREE.AmbientLight(0xffffff,0.4));
+let spot = new THREE.SpotLight(0xffffff,0.8); spot.position.set(5,10,5); spot.castShadow=true; scene.add(spot);
+scene.add(new THREE.DirectionalLight(0xffffff,1.2)).position.set(0,3,6);
+scene.add(new THREE.DirectionalLight(0xffffff,0.6)).position.set(-5,3,2);
+scene.add(new THREE.DirectionalLight(0xffffff,0.4)).position.set(0,3,-6);
 
 // 地面
-const groundGeo = new THREE.PlaneGeometry(20,20);
-const groundMat = new THREE.ShadowMaterial({opacity:0.25});
-const ground = new THREE.Mesh(groundGeo,groundMat); ground.rotation.x=-Math.PI/2; ground.position.y=-1.5; ground.receiveShadow = true; scene.add(ground);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.ShadowMaterial({opacity:0.25}));
+ground.rotation.x=-Math.PI/2; ground.position.y=-1.5; ground.receiveShadow=true; scene.add(ground);
 
 // 控制器
 controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.enablePan = false;
+controls.enableDamping=true; controls.enablePan=false;
 controls.addEventListener('start',()=>autoRotate=false);
 controls.addEventListener('end',()=>autoRotate=true);
 
@@ -336,31 +353,29 @@ const loader = new THREE.GLTFLoader();
 document.getElementById('loading').style.display='block';
 loader.load(url,function(gltf){
 if(model) scene.remove(model);
-model = gltf.scene;
+model=gltf.scene;
 model.traverse(obj=>{if(obj.isMesh){ obj.castShadow=true; obj.receiveShadow=false;}});
-
 const box = new THREE.Box3().setFromObject(model);
 const size = box.getSize(new THREE.Vector3()).length();
-const scale = modelScale / size;
-model.scale.set(0.01,0.01,0.01); 
-scene.add(model);
-document.getElementById('loading').style.display='none';
+const scale = modelScale/size;
+model.scale.set(0.01,0.01,0.01);
+scene.add(model); document.getElementById('loading').style.display='none';
 let currentScale=0.01;
-function scaleUp(){if(currentScale < scale){currentScale += 0.02; model.scale.set(currentScale,currentScale,currentScale); requestAnimationFrame(scaleUp);} else {model.scale.set(scale,scale,scale);} }
-scaleUp();
-const center = box.getCenter(new THREE.Vector3()); model.position.sub(center);
+(function scaleUp(){if(currentScale<scale){currentScale+=0.02; model.scale.set(currentScale,currentScale,currentScale); requestAnimationFrame(scaleUp);}else model.scale.set(scale,scale,scale);})();
+model.position.sub(box.getCenter(new THREE.Vector3()));
 });
 }
 
 function loadOldModel(){if(currentModel==='horse') loadModel('horse model.glb'); else if(currentModel==='tiger') loadModel('tiger model.glb'); showIntroduction();}
 function loadNewModel(){if(currentModel==='horse') loadModel('horse.glb'); else if(currentModel==='tiger') loadModel('tiger.glb'); showIntroduction();}
 
-function animate(){requestAnimationFrame(animate); if(model && autoRotate) model.rotation.y += 0.003; controls.update(); renderer.render(scene,camera);}
-function onWindowResize(){const container = document.querySelector('.model-container'); camera.aspect = container.clientWidth/container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight);}
+function animate(){requestAnimationFrame(animate); if(model && autoRotate) model.rotation.y+=0.003; controls.update(); renderer.render(scene,camera);}
+function onWindowResize(){const container=document.querySelector('.model-container'); camera.aspect=container.clientWidth/container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight);}
 function resetCamera(){camera.position.set(0,1,6); controls.target.set(0,0,0); controls.update();}
-function zoomIn(){camera.position.z *=0.85;}
-function zoomOut(){camera.position.z *=1.15;}
+function zoomIn(){camera.position.z*=0.85;}
+function zoomOut(){camera.position.z*=1.15;}
 
+    
 // 文字介绍
 function showIntroduction(part){
 const intro = document.getElementById('introText');
@@ -467,7 +482,17 @@ let cyberMode=true;
 document.getElementById("lightBtn").onclick=function(){cyberMode=!cyberMode; scene.background=new THREE.Color(cyberMode?0x000000:0x222244);}
 
 // 屏幕尺寸监听
-window.addEventListener("resize",()=>{techCanvas.width=window.innerWidth; techCanvas.height=window.innerHeight;});
+window.addEventListener("resize",()=>{
+  techCanvas.width=window.innerWidth;
+  techCanvas.height=window.innerHeight;
+  if(renderer && camera){
+    const container=document.querySelector('.model-container');
+    camera.aspect=container.clientWidth/container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth,container.clientHeight);
+  }
+});
 </script>
 </body>
 </html>
+
