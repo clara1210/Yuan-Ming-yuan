@@ -366,41 +366,82 @@ function showIntroduction(part){
 const intro = document.getElementById('introText');
 intro.classList.remove('show');
 let text='';
-if(currentModel==='horse'){
-text=`它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。
-It is not just a cultural relic, but a century-old water clock!
+
+  if(currentModel==='horse'){
+    if(currentLang === 'zh') {
+      text = `它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。`;
+    } else {
+      text = `It is not just a cultural relic, but a century-old water clock!
 As the centerpiece of the Twelve Chinese Zodiac Water Clock at the Haiyan Hall, the Horse Head spouts water specifically at the Wu hour (11:00–13:00).
 The wisdom of water conservancy and timekeeping, a perfect fusion of Chinese and Western ingenuity, is vividly embodied in it.`;
-if(part==='mane') text=`这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。
-These lively, curling manes are actually the work of Giuseppe Castiglione! They perfectly blend the realistic delicacy of Western sculpture with the solemn elegance of Chinese bronze craftsmanship. 
+    }
+    
+    if(part==='mane') {
+      if(currentLang === 'zh') {
+        text = `这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。`;
+      } else {
+        text = `These lively, curling manes are actually the work of Giuseppe Castiglione! They perfectly blend the realistic delicacy of Western sculpture with the solemn elegance of Chinese bronze craftsmanship. 
 Every strand and pattern bears the supreme skill of the Qing court workshops, remaining vivid and vibrant even after a hundred years.`;
-if(part==='ear') text=`仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。 
-Look closely! This damaged right ear holds a deeply unforgettable history.
+      }
+    }
+    if(part==='ear') {
+      if(currentLang === 'zh') {
+        text = `仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。 `;
+      } else {
+        text = `Look closely! This damaged right ear holds a deeply unforgettable history.
 In 1860, during the looting of the Old Summer Palace by Anglo-French forces, it was violently destroyed, becoming a silent witness to the relic’s century of displacement.
 Today, let us use digital technology to mend this century-old scar.`;
-if(part==='material') text=`看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。
-The seemingly simple Horse Head hides an extraordinary material secret.
+      }
+    }
+    if(part==='material') {
+      if(currentLang === 'zh') {
+        text = `看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。`;
+      } else {
+        text = `The seemingly simple Horse Head hides an extraordinary material secret.
 Forged from 98% high-purity copper, with trace amounts of lead, iron, and zinc, its composition matches exactly the formula recorded in the archives of the Qianlong Imperial Household Department.
-This is precisely why it has survived centuries of wind and rain and remained intact to this day.`; 
-}else if(currentModel==='tiger'){
-text=`虎对应寅时（3:00—5:00），是黎明将至、万物苏醒之时。虎首每到寅时自动喷水，正午与十一兽首齐喷，是古人把生肖文化、计时文化、水利科技合为一体的绝妙设计。
-The Tiger corresponds to the Yin hour (3:00–5:00), the time when dawn approaches and all living things stir.
+This is precisely why it has survived centuries of wind and rain and remained intact to this day.`;
+      }
+    }
+  }
+  else if(currentModel==='tiger'){
+    if(currentLang === 'zh') {
+      text = `虎对应寅时（3:00—5:00），是黎明将至、万物苏醒之时。虎首每到寅时自动喷水，正午与十一兽首齐喷，是古人把生肖文化、计时文化、水利科技合为一体的绝妙设计。`;
+    } else {
+      text = `The Tiger corresponds to the Yin hour (3:00–5:00), the time when dawn approaches and all living things stir.
 The Tiger Head automatically spouts water at every Yin hour, and at noon, it sprays in unison with the other eleven animal heads.
 This is an ingenious design by the ancient Chinese that integrates zodiac culture, timekeeping culture, and water conservancy technology.`;
-if(part==='forehead') text=`虎首额头特意铸有清晰的 “王” 字纹路 ，这是中国文化独有的艺术表达 —— 虎为百兽之王，“王” 字既是虎的标志，也象征威严、正气与守护，是中式图腾与西方雕塑完美融合的巧思。
-The forehead of the Tiger Head is specially cast with a distinct Chinese character "王" (wáng, meaning "king") pattern—a unique artistic expression in Chinese culture.
-As the king of all beasts, the tiger bears the character "王" as its symbol. It represents dignity, righteousness, and protection, embodying the ingenious fusion of Chinese totem art and Western sculpture.`; 
-if(part==='eyes') text=`虎首双目圆睁、目光锐利有神，不怒自威。在中国文化里，虎眼象征勇气、镇宅、辟邪，匠师用极简线条，就把猛虎的精气神完美定格。
-The Tiger Head has wide-open, sharp and vivid eyes, exuding awe without anger.
+    }
+
+    if(part==='forehead') {
+      if(currentLang === 'zh') {
+        text = `虎首额头特意铸有清晰的 “王” 字纹路 ，这是中国文化独有的艺术表达 —— 虎为百兽之王，“王” 字既是虎的标志，也象征威严、正气与守护，是中式图腾与西方雕塑完美融合的巧思。`;
+      } else {
+        text = `The forehead of the Tiger Head is specially cast with a distinct Chinese character "王" (wáng, meaning "king") pattern—a unique artistic expression in Chinese culture.
+As the king of all beasts, the tiger bears the character "王" as its symbol. It represents dignity, righteousness, and protection, embodying the ingenious fusion of Chinese totem art and Western sculpture.`;
+      }
+    }
+    if(part==='eyes') {
+      if(currentLang === 'zh') {
+        text = `虎首双目圆睁、目光锐利有神，不怒自威。在中国文化里，虎眼象征勇气、镇宅、辟邪，匠师用极简线条，就把猛虎的精气神完美定格。`;
+      } else {
+        text = `The Tiger Head has wide-open, sharp and vivid eyes, exuding awe without anger.
 In Chinese culture, tiger eyes symbolize courage, home protection, and warding off evil spirits.
-With minimal lines, the craftsmen perfectly captured the spirit and vitality of the fierce tiger.`; 
-if(part==='nose') text=`虎首鼻梁挺括、面部肌肉饱满有力，既遵循西方解剖学的真实结构，又符合东方审美里的雄浑大气，每一处起伏都体现清代宫廷造办处的顶级水准。
-The Tiger Head features a straight, prominent nose bridge and full, powerful facial muscles.
+With minimal lines, the craftsmen perfectly captured the spirit and vitality of the fierce tiger.`;
+      }
+    }
+    if(part==='nose') {
+      if(currentLang === 'zh') {
+        text = `虎首鼻梁挺括、面部肌肉饱满有力，既遵循西方解剖学的真实结构，又符合东方审美里的雄浑大气，每一处起伏都体现清代宫廷造办处的顶级水准。`;
+      } else {
+        text = `The Tiger Head features a straight, prominent nose bridge and full, powerful facial muscles.
 It follows the realistic anatomical structure of Western sculpture while conforming to the grand, robust aesthetic of the East.
-Every contour and curve demonstrates the top craftsmanship of the Qing Dynasty Imperial Workshop.`; 
-}
-intro.textContent=text;
-intro.classList.add('show');
+Every contour and curve demonstrates the top craftsmanship of the Qing Dynasty Imperial Workshop.`;
+      }
+    }
+  }
+
+  intro.textContent = text;
+  intro.classList.add('show');
 
 // 如果朗读开启，朗读当前语言文本
 if(speakOn){
