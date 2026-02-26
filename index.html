@@ -2,96 +2,96 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>圆明园构件3D展示</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圆明园兽首 · 数字重生</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:Arial,sans-serif;background:#000;color:#fff;overflow-x:hidden;}
-button{cursor:pointer;}
-
-#techCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;}
-
-#musicBtn,#lightBtn,#langBtn{
-position:fixed;
-right:20px;
-padding:8px 12px;
-border:none;
-border-radius:6px;
-background:#00ffff;
-color:#000;
-z-index:9999;
-font-weight:bold;
-}
-#musicBtn{bottom:20px;}
-#lightBtn{bottom:60px;}
-#langBtn{top:20px;background:#333;color:#fff;}
-
-#scanLine{
-position:fixed;top:0;left:0;width:100%;height:4px;
-background:linear-gradient(to right,transparent,#00ffff,transparent);
-animation:scan 3s linear infinite;
-}
-@keyframes scan{0%{top:0;}100%{top:100%;}}
+body{background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow:hidden;}
 
 #selectPage{
-min-height:100vh;display:flex;flex-direction:column;
-align-items:center;justify-content:center;gap:30px;
+position:absolute;width:100%;height:100vh;
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+gap:40px;background:black;
 }
 
 .select-btn{
-width:200px;height:200px;border:none;border-radius:12px;
+width:220px;height:220px;
+border:none;border-radius:15px;
 background-size:cover;background-position:center;
+box-shadow:0 0 40px rgba(0,255,255,0.6);
+cursor:pointer;
+transition:0.4s;
+}
+.select-btn:hover{
+transform:scale(1.1);
+box-shadow:0 0 80px rgba(0,255,255,1);
 }
 
-#viewerPage{
-display:none;min-height:100vh;flex-direction:column;
-align-items:center;padding:20px;position:relative;
-}
-
-#backBtn{
-position:fixed;top:20px;left:20px;padding:10px 20px;
-font-size:16px;border:none;border-radius:6px;
-background:#b8860b;color:#fff;font-weight:bold;z-index:9999;
-}
-
-.model-container{
-width:100%;max-width:900px;height:75vh;border-radius:15px;
-overflow:hidden;position:relative;margin-bottom:20px;
-box-shadow:0 20px 40px rgba(0,0,0,0.2);
-}
+#viewerPage{display:none;width:100%;height:100vh;position:absolute;}
 
 #modelCanvas{width:100%;height:100%;display:block;}
 
-.introduction{
-width:100%;max-width:900px;padding:30px;text-align:center;
-font-size:16px;font-weight:bold;background:rgba(255,255,255,0.95);
-border-radius:15px;line-height:1.7;white-space:pre-line;
-opacity:0;transition:opacity 0.6s ease;color:#333;
-}
-.introduction.show{opacity:1;}
-
-.controls,.part-buttons{
-margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+#backBtn{
+position:absolute;top:20px;left:20px;
+padding:10px 20px;border:none;border-radius:6px;
+background:#b8860b;color:white;font-weight:bold;
+z-index:5;
 }
 
-.control-btn,.part-btn{padding:8px 16px;border-radius:4px;cursor:pointer;}
-.control-btn{border:none;background:#ffffff;}
-.part-btn{background:#b8860b;border:none;color:#fff;font-weight:bold;}
+#introText{
+position:absolute;bottom:100px;left:50%;
+transform:translateX(-50%);
+width:80%;max-width:900px;
+background:rgba(0,0,0,0.75);
+padding:25px;border-radius:12px;
+line-height:1.6;font-size:16px;
+opacity:0;transition:1s;
+}
+
+#introText.show{opacity:1;}
+
+.timeline{
+position:absolute;
+bottom:30px;
+left:50%;
+transform:translateX(-50%);
+font-size:18px;
+letter-spacing:4px;
+opacity:0;
+transition:1.5s;
+color:#00ffff;
+}
+
+.timeline.show{opacity:1;}
+
+.part-buttons{
+position:absolute;
+top:20px;
+right:20px;
+display:flex;
+flex-direction:column;
+gap:10px;
+z-index:5;
+}
+
+.part-btn{
+padding:8px 14px;
+background:#111;
+border:1px solid #00ffff;
+color:#00ffff;
+cursor:pointer;
+transition:0.3s;
+}
+.part-btn:hover{
+background:#00ffff;
+color:black;
+}
+
 </style>
 </head>
 <body>
-
-<canvas id="techCanvas"></canvas>
-<div id="scanLine"></div>
-
-<audio id="bgm" loop>
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_7c1b5b1c8b.mp3" type="audio/mpeg">
-</audio>
-
-<button id="musicBtn">🎵</button>
-<button id="lightBtn">💡</button>
-<button id="langBtn" onclick="toggleLanguage()">中文</button>
 
 <div id="selectPage">
 <button class="select-btn" onclick="startViewer('horse')" style="background-image:url('horsepicture.jpg')"></button>
@@ -99,21 +99,12 @@ margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
 </div>
 
 <div id="viewerPage">
-<button id="backBtn" onclick="returnToSelect()">返回选择</button>
-
-<div class="model-container">
-<div id="loading">加载中...</div>
+<button id="backBtn" onclick="returnToSelect()">返回</button>
 <canvas id="modelCanvas"></canvas>
+<div id="introText"></div>
+<div class="timeline" id="timeline">
+1860  劫掠流失   ·   2007  马首回归   ·   2019  虎首回归   ·   数字时代 3D重建
 </div>
-
-<div class="introduction" id="introText"></div>
-
-<div class="controls">
-<button class="control-btn" id="resetBtn" onclick="resetCamera()">重置视角</button>
-<button class="control-btn" id="zoomInBtn" onclick="zoomIn()">放大</button>
-<button class="control-btn" id="zoomOutBtn" onclick="zoomOut()">缩小</button>
-</div>
-
 <div class="part-buttons" id="partButtons"></div>
 </div>
 
@@ -122,189 +113,180 @@ margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-let currentLang='zh';
+
 let scene,camera,renderer,controls,model;
 let currentModel='';
 let modelScale=1;
-let speakOn=false;
 
-/* ================= 语言切换 ================= */
-function toggleLanguage(){
-currentLang=currentLang==='zh'?'en':'zh';
-document.getElementById('langBtn').innerText=currentLang==='zh'?'中文':'English';
-updateStaticText();
-setupPartButtons();
-showIntroduction();
-}
-
-function updateStaticText(){
-document.getElementById('backBtn').innerText=currentLang==='zh'?'返回选择':'Back';
-document.getElementById('resetBtn').innerText=currentLang==='zh'?'重置视角':'Reset View';
-document.getElementById('zoomInBtn').innerText=currentLang==='zh'?'放大':'Zoom In';
-document.getElementById('zoomOutBtn').innerText=currentLang==='zh'?'缩小':'Zoom Out';
-document.getElementById('loading').innerText=currentLang==='zh'?'加载中...':'Loading...';
-}
-
-/* ================= 页面切换 ================= */
+/* 页面切换 */
 function startViewer(type){
 currentModel=type;
-document.getElementById('selectPage').style.display='none';
-document.getElementById('viewerPage').style.display='flex';
-setupPartButtons();
+document.getElementById("selectPage").style.display="none";
+document.getElementById("viewerPage").style.display="block";
 init();
+setupButtons();
 animate();
-showIntroduction();
+showIntro();
 }
 
 function returnToSelect(){
-document.getElementById('viewerPage').style.display='none';
-document.getElementById('selectPage').style.display='flex';
-if(model) scene.remove(model);
-model=null;
+location.reload();
 }
 
-/* ================= 部件按钮 ================= */
-function setupPartButtons(){
-const c=document.getElementById('partButtons');
-if(currentModel==='horse'){
-c.innerHTML=currentLang==='zh'?`
-<button class="part-btn" onclick="showIntroduction('mane')">鬓毛</button>
-<button class="part-btn" onclick="showIntroduction('ear')">耳朵</button>
-<button class="part-btn" onclick="showIntroduction('material')">材质</button>
-<button class="part-btn" onclick="loadOldModel()">修复前的马首</button>
-<button class="part-btn" onclick="loadNewModel()">修复后的马首</button>`
-:`
-<button class="part-btn" onclick="showIntroduction('mane')">Mane</button>
-<button class="part-btn" onclick="showIntroduction('ear')">Ear</button>
-<button class="part-btn" onclick="showIntroduction('material')">Material</button>
-<button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
-<button class="part-btn" onclick="loadNewModel()">After Restoration</button>`;
-modelScale=1;
-}else{
-c.innerHTML=currentLang==='zh'?`
-<button class="part-btn" onclick="showIntroduction('forehead')">前额</button>
-<button class="part-btn" onclick="showIntroduction('eyes')">眼部神态</button>
-<button class="part-btn" onclick="showIntroduction('nose')">鼻部与面部肌肉</button>
-<button class="part-btn" onclick="loadOldModel()">修复前的虎首</button>
-<button class="part-btn" onclick="loadNewModel()">修复后的虎首</button>`
-:`
-<button class="part-btn" onclick="showIntroduction('forehead')">Forehead</button>
-<button class="part-btn" onclick="showIntroduction('eyes')">Eyes</button>
-<button class="part-btn" onclick="showIntroduction('nose')">Nose & Muscles</button>
-<button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
-<button class="part-btn" onclick="loadNewModel()">After Restoration</button>`;
-modelScale=2;
-}
-}
-
-/* ================= THREE ================= */
+/* 初始化 */
 function init(){
 scene=new THREE.Scene();
 scene.background=new THREE.Color(0x000000);
-const canvas=document.getElementById('modelCanvas');
-camera=new THREE.PerspectiveCamera(45,canvas.clientWidth/canvas.clientHeight,0.1,1000);
+
+const canvas=document.getElementById("modelCanvas");
+
+camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1000);
 camera.position.set(0,2,6);
+
 renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
-renderer.setSize(canvas.clientWidth,canvas.clientHeight);
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.physicallyCorrectLights=true;
+
 controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
-scene.add(new THREE.HemisphereLight(0xffffff,0x444444,1.2));
-const dir=new THREE.DirectionalLight(0xffffff,1);
-dir.position.set(5,10,7);
-scene.add(dir);
-window.addEventListener('resize',onWindowResize);
+
+/* 灯光 */
+const ambient=new THREE.AmbientLight(0x111111);
+scene.add(ambient);
+
+const spot=new THREE.SpotLight(0xffffff,4);
+spot.position.set(5,12,8);
+spot.angle=0.3;
+scene.add(spot);
+
+const rim=new THREE.DirectionalLight(0x00ffff,2);
+rim.position.set(-5,5,-5);
+scene.add(rim);
+
+window.addEventListener("resize",()=>{
+camera.aspect=window.innerWidth/window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
 loadNewModel();
 }
 
+/* 加载模型 */
 function loadModel(url){
 const loader=new THREE.GLTFLoader();
-document.getElementById('loading').style.display="block";
+
 loader.load(url,function(gltf){
+
 if(model) scene.remove(model);
 model=gltf.scene;
-model.scale.setScalar(modelScale);
 scene.add(model);
-document.getElementById('loading').style.display="none";
+
+/* 自动居中 */
+const box=new THREE.Box3().setFromObject(model);
+const size=box.getSize(new THREE.Vector3());
+const center=box.getCenter(new THREE.Vector3());
+model.position.sub(center);
+const maxDim=Math.max(size.x,size.y,size.z);
+const scale=3/maxDim;
+model.scale.setScalar(scale*modelScale);
+
+/* 能量重建动画 */
+model.traverse(child=>{
+if(child.isMesh){
+child.material.transparent=true;
+child.material.opacity=0;
+child.material.emissive=new THREE.Color(0x00ffff);
+child.material.emissiveIntensity=1.5;
+}
+});
+
+let progress=0;
+const build=setInterval(()=>{
+progress+=0.04;
+model.traverse(c=>{
+if(c.isMesh){
+c.material.opacity=progress;
+c.material.emissiveIntensity=1.5-progress;
+}
+});
+if(progress>=1) clearInterval(build);
+},30);
+
+document.getElementById("timeline").classList.add("show");
 });
 }
 
 function loadOldModel(){
-if(currentModel==='horse') loadModel('horse.glb');
-else loadModel('tiger.glb');
+if(currentModel==='horse') loadModel("horse.glb");
+else loadModel("tiger.glb");
 }
 function loadNewModel(){
-if(currentModel==='horse') loadModel('horse model.glb');
-else loadModel('tiger model.glb');
+if(currentModel==='horse') loadModel("horse model.glb");
+else loadModel("tiger model.glb");
 }
 
+/* 悬浮旋转 */
 function animate(){
 requestAnimationFrame(animate);
-if(controls) controls.update();
-if(renderer) renderer.render(scene,camera);
+if(model){
+model.rotation.y+=0.004;
+model.position.y=Math.sin(Date.now()*0.0015)*0.15;
+}
+controls.update();
+renderer.render(scene,camera);
 }
 
-function onWindowResize(){
-const canvas=document.getElementById('modelCanvas');
-camera.aspect=canvas.clientWidth/canvas.clientHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(canvas.clientWidth,canvas.clientHeight);
+/* 扫描特效 */
+function scanEffect(){
+const geo=new THREE.RingGeometry(0.5,0.6,32);
+const mat=new THREE.MeshBasicMaterial({color:0x00ffff,side:THREE.DoubleSide,transparent:true});
+const ring=new THREE.Mesh(geo,mat);
+ring.rotation.x=-Math.PI/2;
+scene.add(ring);
+let s=0.1;
+const expand=setInterval(()=>{
+s+=0.1;
+ring.scale.set(s,s,s);
+ring.material.opacity-=0.03;
+if(ring.material.opacity<=0){
+scene.remove(ring);
+clearInterval(expand);
+}
+},30);
 }
 
-function resetCamera(){if(controls) controls.reset();}
-function zoomIn(){camera.position.multiplyScalar(0.9);}
-function zoomOut(){camera.position.multiplyScalar(1.1);}
-
-/* ================= 完整保留文字 ================= */
-function showIntroduction(part){
-const intro=document.getElementById('introText');
-intro.classList.remove('show');
-let text='';
-
+/* 文字介绍（完整保留） */
+function showIntro(){
+const intro=document.getElementById("introText");
+let text="";
 if(currentModel==='horse'){
-const content={
-default:{
-zh:"它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。",
-en:"It is not just an artifact, but a century-old hydraulic clock. The horse head sprays water at noon, blending Chinese and Western timekeeping wisdom."
-},
-mane:{
-zh:"这组灵动的卷曲鬃毛，竟出自郎世宁之手！它将西洋雕塑的写实细腻，与中国青铜工艺的厚重典雅完美融合，每一缕纹路都藏着清代宫廷造办处的巅峰技艺，历经百年依旧灵动鲜活。",
-en:"The curled mane blends Western realism with Chinese bronze elegance."
-},
-ear:{
-zh:"仔细看！这处残缺的右耳，藏着一段刻骨铭心的历史——1860年英法联军劫掠圆明园时，它被暴力损毁，成为文物百年流离的“无声见证者”。今天，就让我们用数字技术，为它补上这道跨越百年的“伤痕”。",
-en:"The damaged ear reflects the 1860 looting history, now restored digitally."
-},
-material:{
-zh:"看似朴素的马首，藏着不简单的材质密码——它由98%高纯度红铜打造，搭配微量铅、铁、锌，与乾隆内务府档案记载的配方分毫不差，也正因如此，它才能历经百年风雨，依旧完好留存。",
-en:"Made of 98% red copper with trace metals, matching Qing records."
-}
-};
-text=content[part||'default'][currentLang];
+text="它不只是一件文物，更是一座“百年水力钟”！马首作为海晏堂十二生肖水力钟的核心，专门对应午时（11:00-13:00）喷水，中西合璧的水利与计时智慧，在它身上体现得淋漓尽致。";
 }else{
-const content={
-default:{
-zh:"虎对应寅时（3:00—5:00），是黎明将至、万物苏醒之时。虎首每到寅时自动喷水，正午与十一兽首齐喷，是古人把生肖文化、计时文化、水利科技合为一体的绝妙设计。",
-en:"The tiger sprays water at dawn, symbolizing awakening."
-},
-forehead:{
-zh:"虎首额头特意铸有清晰的 “王” 字纹路 ，这是中国文化独有的艺术表达 —— 虎为百兽之王，“王” 字既是虎的标志，也象征威严、正气与守护，是中式图腾与西方雕塑完美融合的巧思。",
-en:"The 'King' symbol on the forehead shows authority and protection."
-},
-eyes:{
-zh:"虎首双目圆睁、目光锐利有神，不怒自威。在中国文化里，虎眼象征勇气、镇宅、辟邪，匠师用极简线条，就把猛虎的精气神完美定格。",
-en:"Sharp eyes symbolize courage and protection."
-},
-nose:{
-zh:"虎首鼻梁挺括、面部肌肉饱满有力，既遵循西方解剖学的真实结构，又符合东方审美里的雄浑大气，每一处起伏都体现清代宫廷造办处的顶级水准。",
-en:"Facial muscles combine Western anatomy with Eastern aesthetics."
+text="虎对应寅时（3:00—5:00），是黎明将至、万物苏醒之时。虎首每到寅时自动喷水，正午与十一兽首齐喷，是古人把生肖文化、计时文化、水利科技合为一体的绝妙设计。";
 }
-};
-text=content[part||'default'][currentLang];
+intro.innerText=text;
+setTimeout(()=>intro.classList.add("show"),500);
 }
 
-intro.textContent=text;
-intro.classList.add('show');
+/* 部件按钮 */
+function setupButtons(){
+const c=document.getElementById("partButtons");
+if(currentModel==='horse'){
+modelScale=1;
+c.innerHTML=`
+<button class="part-btn" onclick="scanEffect();loadOldModel();">修复前</button>
+<button class="part-btn" onclick="scanEffect();loadNewModel();">修复后</button>
+`;
+}else{
+modelScale=2;
+c.innerHTML=`
+<button class="part-btn" onclick="scanEffect();loadOldModel();">修复前</button>
+<button class="part-btn" onclick="scanEffect();loadNewModel();">修复后</button>
+`;
 }
+}
+
 </script>
 </body>
 </html>
