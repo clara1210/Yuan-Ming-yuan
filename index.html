@@ -4,72 +4,159 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>圆明园构件3D展示</title>
+    
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family: Arial, sans-serif;background:#000;color:#fff;overflow-x:hidden;}
 button{cursor:pointer;}
 
-/* 背景粒子 */
 #techCanvas{
-position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:-1;
 }
 
-#scanLine{
-position:fixed;top:0;left:0;width:100%;height:4px;
-background:linear-gradient(to right,transparent,#00ffff,transparent);
-animation:scan 3s linear infinite;
+#hudPanel{
+position:fixed;
+left:20px;
+bottom:20px;
+background:rgba(0,255,255,0.1);
+border:1px solid #00ffff;
+padding:15px;
+border-radius:10px;
+font-size:13px;
+backdrop-filter:blur(5px);
 }
-@keyframes scan{0%{top:0;}100%{top:100%;}}
 
 #musicBtn,#lightBtn{
-position:fixed;right:20px;padding:8px 12px;border:none;border-radius:6px;background:#00ffff;color:#000;z-index:9999;font-weight:bold;
+position:fixed;
+right:20px;
+padding:8px 12px;
+border:none;
+border-radius:6px;
+background:#00ffff;
+color:#000;
+z-index:9999;
+font-weight:bold;
 }
 #musicBtn{bottom:20px;}
 #lightBtn{bottom:60px;}
 
+#scanLine{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:4px;
+background:linear-gradient(to right,transparent,#00ffff,transparent);
+animation:scan 3s linear infinite;
+}
+@keyframes scan{
+0%{top:0;}
+100%{top:100%;}
+}
+
 #langBtn{
-position:fixed;top:20px;right:20px;padding:8px 14px;border:none;border-radius:6px;background:#333;color:#fff;font-size:14px;z-index:9999;
+position:fixed;
+top:20px;
+right:20px;
+padding:8px 14px;
+border:none;
+border-radius:6px;
+background:#333;
+color:#fff;
+font-size:14px;
+z-index:9999;
 }
 
 #selectPage{
-min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+gap:30px;
 }
+
 .select-btn{
-width:200px;height:200px;border:none;border-radius:12px;background-size:cover;background-position:center;
+width:200px;
+height:200px;
+border:none;
+border-radius:12px;
+background-size:cover;
+background-position:center;
 }
 
 #viewerPage{
-display:none;min-height:100vh;flex-direction:column;align-items:center;padding:20px;position:relative;
+display:none;
+min-height:100vh;
+flex-direction:column;
+align-items:center;
+padding:20px;
+position:relative;
 }
+
 #backBtn{
-position:fixed;top:calc(20px + env(safe-area-inset-top));left:20px;padding:10px 20px;font-size:16px;border:none;border-radius:6px;background:#b8860b;color:#fff;font-weight:bold;z-index:9999;
+position:fixed;
+top:calc(20px + env(safe-area-inset-top));
+left:20px;
+padding:10px 20px;
+font-size:16px;
+border:none;
+border-radius:6px;
+background:#b8860b;
+color:#fff;
+font-weight:bold;
+z-index:9999;
 }
 
 .model-container{
-width:100%;max-width:900px;height:75vh;border-radius:15px;overflow:hidden;position:relative;margin-bottom:20px;box-shadow:0 20px 40px rgba(0,0,0,0.2);
+width:100%;
+max-width:900px;
+height:75vh;
+border-radius:15px;
+overflow:hidden;
+position:relative;
+margin-bottom:20px;
+box-shadow:0 20px 40px rgba(0,0,0,0.2);
 }
+
 #modelCanvas{width:100%;height:100%;display:block;}
 
-/* 右上角修复按钮 */
-.model-top-buttons{
-position:absolute;top:15px;right:15px;display:flex;gap:10px;z-index:20;
-}
-.model-top-buttons button{
-padding:8px 14px;border:none;border-radius:6px;background:#b8860b;color:#fff;font-weight:bold;cursor:pointer;transition: all 0.3s ease;box-shadow: 0 0 8px rgba(0,255,255,0.4);
-}
-.model-top-buttons button:hover{box-shadow: 0 0 20px #00ffff,0 0 40px #00ffff,0 0 60px #00ffff;transform: translateY(-2px);}
-.model-top-buttons button.active{background:#00ffff;color:#000;box-shadow:0 0 30px #00ffff,0 0 50px #00ffff,0 0 70px #00ffff;}
-
-/* 零件按钮和控制按钮 */
 .introduction{
-width:100%;max-width:900px;padding:30px;text-align:center;font-size:16px;font-weight:bold;background:rgba(255,255,255,0.95);border-radius:15px;line-height:1.7;white-space:pre-line;opacity:0;transition:opacity 0.6s ease;color:#333;
+width:100%;
+max-width:900px;
+padding:30px;
+text-align:center;
+font-size:16px;
+font-weight:bold;
+background:rgba(255,255,255,0.95);
+border-radius:15px;
+line-height:1.7;
+white-space:pre-line;
+opacity:0;
+transition:opacity 0.6s ease;
+color:#333
 }
 .introduction.show{opacity:1;}
 
 .controls,.part-buttons{
-margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+margin-top:20px;
+display:flex;
+gap:10px;
+justify-content:center;
+flex-wrap:wrap;
 }
-.control-btn,.part-btn{padding:8px 16px;border-radius:4px;cursor:pointer;}
+
+.control-btn,.part-btn{
+padding:8px 16px;
+border-radius:4px;
+cursor:pointer;
+}
+
 .control-btn{border:none;background:#ffffff;}
 .part-btn{background:#b8860b;border:none;color:#fff;font-weight:bold;}
 </style>
@@ -85,6 +172,7 @@ margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
 
 <button id="musicBtn">🎵</button>
 <button id="lightBtn">💡</button>
+
 <button id="langBtn" onclick="toggleLanguage()">中文</button>
 
 <div id="selectPage">
@@ -98,12 +186,6 @@ margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
 <div class="model-container">
 <div id="loading">加载中...</div>
 <canvas id="modelCanvas"></canvas>
-
-<!-- 右上角修复按钮 -->
-<div class="model-top-buttons">
-<button id="oldBtn">修复前</button>
-<button id="newBtn" class="active">修复后</button>
-</div>
 </div>
 
 <div class="introduction" id="introText"></div>
@@ -124,18 +206,22 @@ margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
 <script>
 let currentLang='zh';
 let scene, camera, renderer, controls, model;
-let autoRotate=true, currentModel='', modelScale=1;
+let autoRotate=true;
+let currentModel='';
+let modelScale=1;
 const originalMaterials = new Map();
+
+// 朗读开关
 let speakOn=false;
 
-// 右上按钮逻辑
-const oldBtn=document.getElementById('oldBtn');
-const newBtn=document.getElementById('newBtn');
-oldBtn.onclick=function(){loadOldModel(); oldBtn.classList.add('active'); newBtn.classList.remove('active');}
-newBtn.onclick=function(){loadNewModel(); newBtn.classList.add('active'); oldBtn.classList.remove('active');}
+function toggleLanguage(){
+currentLang=currentLang==='zh'?'en':'zh';
+document.getElementById('langBtn').innerText=currentLang==='zh'?'中文':'English';
+updateStaticText();
+if(currentModel) setupPartButtons();
+showIntroduction();
+}
 
-// 语言切换
-function toggleLanguage(){currentLang=currentLang==='zh'?'en':'zh';document.getElementById('langBtn').innerText=currentLang==='zh'?'中文':'English';updateStaticText();if(currentModel) setupPartButtons();showIntroduction();}
 function updateStaticText(){
 document.getElementById('backBtn').innerText=currentLang==='zh'?'返回选择':'Back';
 document.getElementById('resetBtn').innerText=currentLang==='zh'?'重置视角':'Reset View';
@@ -144,36 +230,61 @@ document.getElementById('zoomOutBtn').innerText=currentLang==='zh'?'缩小':'Zoo
 document.getElementById('loading').innerText=currentLang==='zh'?'加载中...':'Loading...';
 }
 
-// 页面切换
-function startViewer(type){currentModel=type;document.getElementById('selectPage').style.display='none';document.getElementById('viewerPage').style.display='flex';setupPartButtons();init();animate();showIntroduction();}
-function returnToSelect(){document.getElementById('viewerPage').style.display='none';document.getElementById('selectPage').style.display='flex';if(model) scene.remove(model); model=null;}
+function startViewer(type){
+currentModel = type;
+document.getElementById('selectPage').style.display='none';
+document.getElementById('viewerPage').style.display='flex';
+setupPartButtons();
+init();
+animate();
+showIntroduction();
+}
 
-// 零件按钮
+function returnToSelect(){
+document.getElementById('viewerPage').style.display='none';
+document.getElementById('selectPage').style.display='flex';
+if(model) scene.remove(model);
+model=null;
+}
+
 function setupPartButtons(){
-const c=document.getElementById('partButtons'); c.innerHTML='';
+const c=document.getElementById('partButtons');
+c.innerHTML='';
 if(currentModel==='horse'){
 c.innerHTML=currentLang==='zh'?`
 <button class="part-btn" onclick="showIntroduction('mane');highlightPart('mane')">鬓毛</button>
 <button class="part-btn" onclick="showIntroduction('ear');highlightPart('ear')">耳朵</button>
-<button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">材质</button>`:
-`<button class="part-btn" onclick="showIntroduction('mane');highlightPart('mane')">Mane</button>
+<button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">材质</button>
+<button class="part-btn" onclick="loadOldModel()">修复前的马首</button>
+<button class="part-btn" onclick="loadNewModel()">修复后的马首</button>
+`:
+`
+<button class="part-btn" onclick="showIntroduction('mane');highlightPart('mane')">Mane</button>
 <button class="part-btn" onclick="showIntroduction('ear');highlightPart('ear')">Ear</button>
-<button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">Material</button>`;
-modelScale=2;
-}else if(currentModel==='tiger'){
+<button class="part-btn" onclick="showIntroduction('material');highlightPart('material')">Material</button>
+<button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
+<button class="part-btn" onclick="loadNewModel()">After Restoration</button>
+`;
+modelScale=1;
+}
+else if(currentModel==='tiger'){
 c.innerHTML=currentLang==='zh'?`
 <button class="part-btn" onclick="showIntroduction('forehead');highlightPart('forehead')">前额</button>
 <button class="part-btn" onclick="showIntroduction('eyes');highlightPart('eyes')">眼部神态</button>
-<button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">鼻部与面部肌肉</button>`:
-`<button class="part-btn" onclick="showIntroduction('forehead');highlightPart('forehead')">Forehead</button>
+<button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">鼻部与面部肌肉</button>
+<button class="part-btn" onclick="loadOldModel()">修复前的虎首</button>
+<button class="part-btn" onclick="loadNewModel()">修复后的虎首</button>
+`:
+`
+<button class="part-btn" onclick="showIntroduction('forehead');highlightPart('forehead')">Forehead</button>
 <button class="part-btn" onclick="showIntroduction('eyes');highlightPart('eyes')">Eyes</button>
-<button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">Nose & Muscles</button>`;
+<button class="part-btn" onclick="showIntroduction('nose');highlightPart('nose')">Nose & Muscles</button>
+<button class="part-btn" onclick="loadOldModel()">Before Restoration</button>
+<button class="part-btn" onclick="loadNewModel()">After Restoration</button>
+`;
 modelScale=2;
 }
 }
-
-
-</html>
 
 function init(){
 scene = new THREE.Scene();
